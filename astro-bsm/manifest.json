@@ -1,0 +1,50 @@
+{
+    "name": "ASTRO-BSM Factory Operations",
+    "short_name": "ASTRO-BSM",
+    "description": "GMP-Compliant Factory Operations & Duty Roster Management System",
+    "start_url": "/index.html",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#1a365d",
+    "theme_color": "#1a365d",
+    "categories": ["business", "productivity"],
+    "icons": [
+        {
+            "src": "icons/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon.svg",
+            "sizes": "512x512",
+            "type": "image/svg+xml",
+            "purpose": "maskable"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Dashboard",
+            "short_name": "Dashboard",
+            "description": "View factory dashboard",
+            "url": "/index.html#dashboard",
+            "icons": [{ "src": "icons/icon.svg", "sizes": "any" }]
+        },
+        {
+            "name": "Duty Roster",
+            "short_name": "Roster",
+            "description": "View duty roster",
+            "url": "/index.html#roster",
+            "icons": [{ "src": "icons/icon.svg", "sizes": "any" }]
+        },
+        {
+            "name": "Production",
+            "short_name": "Production",
+            "description": "View production schedules",
+            "url": "/index.html#production",
+            "icons": [{ "src": "icons/icon.svg", "sizes": "any" }]
+        }
+    ],
+    "related_applications": [],
+    "prefer_related_applications": false
+}

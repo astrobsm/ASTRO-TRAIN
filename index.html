@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WOUND CLEX PROTOCOL - BONNESANTE MEDICALS</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Presentation Selector Menu -->
+    <div id="presentationMenu" class="presentation-menu show">
+        <div class="menu-content">
+            <div class="menu-logo">
+                <img src="LOGO.PNG" alt="BONNESANTE MEDICALS" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%231a5f7a%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 font-size=%2240%22 text-anchor=%22middle%22 fill=%22white%22>BM</text></svg>'">
+            </div>
+            <h1 class="menu-title">BONNESANTE MEDICALS</h1>
+            <p class="menu-subtitle">Training Presentation Portal</p>
+            
+            <!-- Quick Access: Factory Operations -->
+            <div class="factory-ops-banner" onclick="window.location.href='astro-bsm/index.html'">
+                <div class="factory-ops-icon"><i class="fas fa-industry"></i></div>
+                <div class="factory-ops-content">
+                    <h3>ASTRO-BSM Factory Operations</h3>
+                    <p>Duty Roster • Production Scheduling • Staff Management</p>
+                </div>
+                <div class="factory-ops-arrow"><i class="fas fa-arrow-right"></i></div>
+            </div>
+            
+            <!-- Category Filter Tabs -->
+            <div class="category-tabs">
+                <button class="category-tab active" onclick="filterCategory('all')">All</button>
+                <button class="category-tab" onclick="filterCategory('core')">Core Training</button>
+                <button class="category-tab" onclick="filterCategory('sop')">SOPs</button>
+                <button class="category-tab" onclick="filterCategory('general')">General Staff</button>
+                <button class="category-tab" onclick="filterCategory('production')">Production</button>
+                <button class="category-tab" onclick="filterCategory('sales')">Sales</button>
+                <button class="category-tab" onclick="filterCategory('marketing')">Marketing</button>
+                <button class="category-tab" onclick="filterCategory('distribution')">Distribution</button>
+                <button class="category-tab" onclick="filterCategory('management')">Management</button>
+                <button class="category-tab" onclick="filterCategory('cpd')">CPD</button>
+            </div>
+            
+            <div class="presentation-cards">
+                <!-- CORE TRAINING -->
+                <div class="presentation-card" data-category="core" onclick="selectPresentation('wound-clex')">
+                    <div class="card-icon"><i class="fas fa-prescription-bottle-medical"></i></div>
+                    <h2>WOUND CLEX® PROTOCOL</h2>
+                    <p>Production Process Training</p>
+                    <p class="card-details">23 Slides • From Planning to Warehouse</p>
+                    <span class="card-badge">Manufacturing</span>
+                </div>
+                <div class="presentation-card" data-category="core" onclick="selectPresentation('hygiene')">
+                    <div class="card-icon"><i class="fas fa-hand-sparkles"></i></div>
+                    <h2>HYGIENE & STERILITY</h2>
+                    <p>Production Environment Standards</p>
+                    <p class="card-details">27 Slides • Complete Hygiene Protocol</p>
+                    <span class="card-badge">Compliance</span>
+                </div>
+                <div class="presentation-card" data-category="core" onclick="selectPresentation('organization')">
+                    <div class="card-icon"><i class="fas fa-boxes-stacked"></i></div>
+                    <h2>WORKPLACE ORGANIZATION</h2>
+                    <p>5S Principles & Factory Standards</p>
+                    <p class="card-details">23 Slides • Order & Efficiency</p>
+                    <span class="card-badge">5S Standards</span>
+                </div>
+                
+                <!-- GENERAL STAFF TRAINING -->
+                <div class="presentation-card" data-category="general" onclick="selectPresentation('company-orientation')">
+                    <div class="card-icon"><i class="fas fa-building"></i></div>
+                    <h2>COMPANY ORIENTATION</h2>
+                    <p>Ethics & Corporate Culture</p>
+                    <p class="card-details">13 Slides • New Employee Essentials</p>
+                    <span class="card-badge">General</span>
+                </div>
+                <div class="presentation-card" data-category="general" onclick="selectPresentation('basic-wound-care')">
+                    <div class="card-icon"><i class="fas fa-band-aid"></i></div>
+                    <h2>BASIC WOUND CARE</h2>
+                    <p>Fundamentals for All Staff</p>
+                    <p class="card-details">13 Slides • Wound Healing Basics</p>
+                    <span class="card-badge">General</span>
+                </div>
+                <div class="presentation-card" data-category="general" onclick="selectPresentation('product-knowledge')">
+                    <div class="card-icon"><i class="fas fa-flask"></i></div>
+                    <h2>PRODUCT KNOWLEDGE</h2>
+                    <p>WOUND CLEX® Deep Dive</p>
+                    <p class="card-details">14 Slides • Know Your Product</p>
+                    <span class="card-badge">General</span>
+                </div>
+                <div class="presentation-card" data-category="general" onclick="selectPresentation('qms-awareness')">
+                    <div class="card-icon"><i class="fas fa-certificate"></i></div>
+                    <h2>QMS AWARENESS</h2>
+                    <p>Quality Management System</p>
+                    <p class="card-details">15 Slides • ISO 9001 & GMP</p>
+                    <span class="card-badge">General</span>
+                </div>
+                <div class="presentation-card" data-category="general" onclick="selectPresentation('hse-training')">
+                    <div class="card-icon"><i class="fas fa-hard-hat"></i></div>
+                    <h2>HSE TRAINING</h2>
+                    <p>Health, Safety & Environment</p>
+                    <p class="card-details">15 Slides • Workplace Safety</p>
+                    <span class="card-badge">General</span>
+                </div>
+                
+                <!-- PRODUCTION STAFF TRAINING -->
+                <div class="presentation-card" data-category="production" onclick="selectPresentation('gmp-production')">
+                    <div class="card-icon"><i class="fas fa-industry"></i></div>
+                    <h2>GMP PRODUCTION</h2>
+                    <p>Good Manufacturing Practice</p>
+                    <p class="card-details">15 Slides • Core GMP Principles</p>
+                    <span class="card-badge">Production</span>
+                </div>
+                <div class="presentation-card" data-category="production" onclick="selectPresentation('sop-compliance')">
+                    <div class="card-icon"><i class="fas fa-file-lines"></i></div>
+                    <h2>SOP COMPLIANCE</h2>
+                    <p>Standard Operating Procedures</p>
+                    <p class="card-details">14 Slides • Follow Procedures</p>
+                    <span class="card-badge">Production</span>
+                </div>
+                <div class="presentation-card" data-category="production" onclick="selectPresentation('raw-material')">
+                    <div class="card-icon"><i class="fas fa-truck-ramp-box"></i></div>
+                    <h2>RAW MATERIAL HANDLING</h2>
+                    <p>Receiving, Storage & Dispensing</p>
+                    <p class="card-details">14 Slides • Material Management</p>
+                    <span class="card-badge">Production</span>
+                </div>
+                <div class="presentation-card" data-category="production" onclick="selectPresentation('water-purification')">
+                    <div class="card-icon"><i class="fas fa-droplet"></i></div>
+                    <h2>WATER PURIFICATION</h2>
+                    <p>Pharmaceutical Water Systems</p>
+                    <p class="card-details">15 Slides • Water Quality</p>
+                    <span class="card-badge">Production</span>
+                </div>
+                <div class="presentation-card" data-category="production" onclick="selectPresentation('liquid-compounding')">
+                    <div class="card-icon"><i class="fas fa-flask-vial"></i></div>
+                    <h2>LIQUID COMPOUNDING</h2>
+                    <p>Formulation & Manufacturing</p>
+                    <p class="card-details">14 Slides • Compounding Process</p>
+                    <span class="card-badge">Production</span>
+                </div>
+                <div class="presentation-card" data-category="production" onclick="selectPresentation('quality-control')">
+                    <div class="card-icon"><i class="fas fa-microscope"></i></div>
+                    <h2>QUALITY CONTROL</h2>
+                    <p>Testing & Batch Release</p>
+                    <p class="card-details">14 Slides • QC Laboratory</p>
+                    <span class="card-badge">Production</span>
+                </div>
+                <div class="presentation-card" data-category="production" onclick="selectPresentation('packaging-labeling')">
+                    <div class="card-icon"><i class="fas fa-box-open"></i></div>
+                    <h2>PACKAGING & LABELING</h2>
+                    <p>Line Operations & Controls</p>
+                    <p class="card-details">14 Slides • Packaging Process</p>
+                    <span class="card-badge">Production</span>
+                </div>
+                <div class="presentation-card" data-category="production" onclick="selectPresentation('equipment-handling')">
+                    <div class="card-icon"><i class="fas fa-gears"></i></div>
+                    <h2>EQUIPMENT HANDLING</h2>
+                    <p>Operation & Maintenance</p>
+                    <p class="card-details">14 Slides • Equipment Management</p>
+                    <span class="card-badge">Production</span>
+                </div>
+                
+                <!-- SALES STAFF TRAINING -->
+                <div class="presentation-card" data-category="sales" onclick="selectPresentation('clinical-selling')">
+                    <div class="card-icon"><i class="fas fa-user-doctor"></i></div>
+                    <h2>CLINICAL SELLING</h2>
+                    <p>Healthcare Sales Techniques</p>
+                    <p class="card-details">14 Slides • FAB Selling</p>
+                    <span class="card-badge">Sales</span>
+                </div>
+                <div class="presentation-card" data-category="sales" onclick="selectPresentation('hospital-sales')">
+                    <div class="card-icon"><i class="fas fa-hospital"></i></div>
+                    <h2>HOSPITAL SALES</h2>
+                    <p>Institutional Account Management</p>
+                    <p class="card-details">14 Slides • Key Account Strategy</p>
+                    <span class="card-badge">Sales</span>
+                </div>
+                <div class="presentation-card" data-category="sales" onclick="selectPresentation('regulatory-compliance-sales')">
+                    <div class="card-icon"><i class="fas fa-gavel"></i></div>
+                    <h2>REGULATORY COMPLIANCE</h2>
+                    <p>Sales Compliance Requirements</p>
+                    <p class="card-details">14 Slides • NAFDAC & Ethics</p>
+                    <span class="card-badge">Sales</span>
+                </div>
+                <div class="presentation-card" data-category="sales" onclick="selectPresentation('customer-service')">
+                    <div class="card-icon"><i class="fas fa-headset"></i></div>
+                    <h2>CUSTOMER SERVICE</h2>
+                    <p>Excellence in Service Delivery</p>
+                    <p class="card-details">14 Slides • LEARN Model</p>
+                    <span class="card-badge">Sales</span>
+                </div>
+                <div class="presentation-card" data-category="sales" onclick="selectPresentation('distribution-awareness')">
+                    <div class="card-icon"><i class="fas fa-route"></i></div>
+                    <h2>DISTRIBUTION AWARENESS</h2>
+                    <p>Channel & Territory Management</p>
+                    <p class="card-details">14 Slides • Distribution Channels</p>
+                    <span class="card-badge">Sales</span>
+                </div>
+                
+                <!-- MARKETING STAFF TRAINING -->
+                <div class="presentation-card" data-category="marketing" onclick="selectPresentation('ethical-marketing')">
+                    <div class="card-icon"><i class="fas fa-scale-balanced"></i></div>
+                    <h2>ETHICAL MARKETING</h2>
+                    <p>Pharmaceutical Promotion Standards</p>
+                    <p class="card-details">14 Slides • Compliance Marketing</p>
+                    <span class="card-badge">Marketing</span>
+                </div>
+                <div class="presentation-card" data-category="marketing" onclick="selectPresentation('market-intelligence')">
+                    <div class="card-icon"><i class="fas fa-magnifying-glass-chart"></i></div>
+                    <h2>MARKET INTELLIGENCE</h2>
+                    <p>Competitive Analysis</p>
+                    <p class="card-details">14 Slides • Market Insights</p>
+                    <span class="card-badge">Marketing</span>
+                </div>
+                <div class="presentation-card" data-category="marketing" onclick="selectPresentation('medical-communication')">
+                    <div class="card-icon"><i class="fas fa-pen-fancy"></i></div>
+                    <h2>MEDICAL COMMUNICATION</h2>
+                    <p>Scientific Writing</p>
+                    <p class="card-details">14 Slides • Medical Content</p>
+                    <span class="card-badge">Marketing</span>
+                </div>
+                <div class="presentation-card" data-category="marketing" onclick="selectPresentation('brand-management')">
+                    <div class="card-icon"><i class="fas fa-tag"></i></div>
+                    <h2>BRAND MANAGEMENT</h2>
+                    <p>Building Brand Value</p>
+                    <p class="card-details">14 Slides • Brand Strategy</p>
+                    <span class="card-badge">Marketing</span>
+                </div>
+                <div class="presentation-card" data-category="marketing" onclick="selectPresentation('digital-marketing')">
+                    <div class="card-icon"><i class="fas fa-globe"></i></div>
+                    <h2>DIGITAL MARKETING</h2>
+                    <p>Healthcare Digital Strategy</p>
+                    <p class="card-details">14 Slides • Online Engagement</p>
+                    <span class="card-badge">Marketing</span>
+                </div>
+                
+                <!-- DISTRIBUTION & WAREHOUSE STAFF -->
+                <div class="presentation-card" data-category="distribution" onclick="selectPresentation('gdp')">
+                    <div class="card-icon"><i class="fas fa-warehouse"></i></div>
+                    <h2>GOOD DISTRIBUTION PRACTICE</h2>
+                    <p>GDP Compliance Training</p>
+                    <p class="card-details">14 Slides • Supply Chain Quality</p>
+                    <span class="card-badge">Distribution</span>
+                </div>
+                <div class="presentation-card" data-category="distribution" onclick="selectPresentation('logistics')">
+                    <div class="card-icon"><i class="fas fa-truck-fast"></i></div>
+                    <h2>LOGISTICS & COLD CHAIN</h2>
+                    <p>Temperature Management</p>
+                    <p class="card-details">14 Slides • Cold Chain Control</p>
+                    <span class="card-badge">Distribution</span>
+                </div>
+                
+                <!-- MANAGEMENT & SUPERVISORY -->
+                <div class="presentation-card" data-category="management" onclick="selectPresentation('leadership')">
+                    <div class="card-icon"><i class="fas fa-users-gear"></i></div>
+                    <h2>LEADERSHIP & TEAM MGMT</h2>
+                    <p>People Leadership Skills</p>
+                    <p class="card-details">14 Slides • Team Excellence</p>
+                    <span class="card-badge">Management</span>
+                </div>
+                <div class="presentation-card" data-category="management" onclick="selectPresentation('risk-management')">
+                    <div class="card-icon"><i class="fas fa-shield-halved"></i></div>
+                    <h2>RISK MANAGEMENT</h2>
+                    <p>Quality Risk Management</p>
+                    <p class="card-details">14 Slides • ICH Q9</p>
+                    <span class="card-badge">Management</span>
+                </div>
+                <div class="presentation-card" data-category="management" onclick="selectPresentation('inspection-readiness')">
+                    <div class="card-icon"><i class="fas fa-clipboard-check"></i></div>
+                    <h2>INSPECTION READINESS</h2>
+                    <p>Regulatory Audit Preparation</p>
+                    <p class="card-details">14 Slides • Always Ready</p>
+                    <span class="card-badge">Management</span>
+                </div>
+                
+                <!-- CPD TRAINING -->
+                <div class="presentation-card" data-category="cpd" onclick="selectPresentation('advanced-wound-care')">
+                    <div class="card-icon"><i class="fas fa-dna"></i></div>
+                    <h2>ADVANCED WOUND CARE</h2>
+                    <p>Wound Healing Science</p>
+                    <p class="card-details">14 Slides • Expert Level</p>
+                    <span class="card-badge">CPD</span>
+                </div>
+                <div class="presentation-card" data-category="cpd" onclick="selectPresentation('performance-competency')">
+                    <div class="card-icon"><i class="fas fa-chart-line"></i></div>
+                    <h2>PERFORMANCE & COMPETENCY</h2>
+                    <p>Evaluation & Development</p>
+                    <p class="card-details">14 Slides • Team Development</p>
+                    <span class="card-badge">CPD</span>
+                </div>
+                
+                <!-- ILLUSTRATED SOPs -->
+                <div class="presentation-card" data-category="sop" onclick="selectPresentation('sop-wound-clex')">
+                    <div class="card-icon"><i class="fas fa-flask"></i></div>
+                    <h2>SOP: WOUND-CLEX®</h2>
+                    <p>Illustrated Manufacturing SOP</p>
+                    <p class="card-details">10 Slides • Step-by-Step Guide</p>
+                    <span class="card-badge badge-sop">SOP</span>
+                </div>
+                <div class="presentation-card" data-category="sop" onclick="selectPresentation('sop-hera-wound-gel')">
+                    <div class="card-icon"><i class="fas fa-prescription-bottle"></i></div>
+                    <h2>SOP: HERA WOUND GEL</h2>
+                    <p>Illustrated Manufacturing SOP</p>
+                    <p class="card-details">15 Slides • Emulsion Process</p>
+                    <span class="card-badge badge-sop">SOP</span>
+                </div>
+                <div class="presentation-card" data-category="sop" onclick="selectPresentation('sop-wound-care-gauze')">
+                    <div class="card-icon"><i class="fas fa-bandage"></i></div>
+                    <h2>SOP: WOUND CARE GAUZE</h2>
+                    <p>Illustrated Manufacturing SOP</p>
+                    <p class="card-details">14 Slides • Honey Immersion</p>
+                    <span class="card-badge badge-sop">SOP</span>
+                </div>
+                
+                <!-- OPERATIONAL PROTOCOLS (34-42) -->
+                <div class="presentation-card" data-category="production" onclick="selectPresentation('ppe-wearing')">
+                    <div class="card-icon"><i class="fas fa-user-shield"></i></div>
+                    <h2>PPE WEARING PROTOCOL</h2>
+                    <p>Donning & Doffing Procedures</p>
+                    <p class="card-details">13 Slides • Cap, Mask, Gloves</p>
+                    <span class="card-badge">Protocol</span>
+                </div>
+                <div class="presentation-card" data-category="production" onclick="selectPresentation('contamination-breach')">
+                    <div class="card-icon"><i class="fas fa-biohazard"></i></div>
+                    <h2>CONTAMINATION BREACH</h2>
+                    <p>S.I.A. Response Protocol</p>
+                    <p class="card-details">13 Slides • Stop-Isolate-Alert</p>
+                    <span class="card-badge badge-critical">Critical</span>
+                </div>
+                <div class="presentation-card" data-category="production" onclick="selectPresentation('line-cleaning')">
+                    <div class="card-icon"><i class="fas fa-broom"></i></div>
+                    <h2>LINE CLEANING PROTOCOLS</h2>
+                    <p>All Product Lines Cleaning</p>
+                    <p class="card-details">15 Slides • WOUND CLEX, HERA, Gauze</p>
+                    <span class="card-badge">Protocol</span>
+                </div>
+                <div class="presentation-card" data-category="production" onclick="selectPresentation('production-planning')">
+                    <div class="card-icon"><i class="fas fa-calendar-days"></i></div>
+                    <h2>PRODUCTION PLANNING</h2>
+                    <p>Product-Specific Planning</p>
+                    <p class="card-details">15 Slides • Plan Right, Produce Right</p>
+                    <span class="card-badge">Protocol</span>
+                </div>
+                <div class="presentation-card" data-category="production" onclick="selectPresentation('bottle-washing')">
+                    <div class="card-icon"><i class="fas fa-bottle-water"></i></div>
+                    <h2>BOTTLE WASHING</h2>
+                    <p>Container Preparation</p>
+                    <p class="card-details">14 Slides • Clean Containers</p>
+                    <span class="card-badge">Protocol</span>
+                </div>
+                <div class="presentation-card" data-category="production" onclick="selectPresentation('factory-cleaning')">
+                    <div class="card-icon"><i class="fas fa-spray-can-sparkles"></i></div>
+                    <h2>FACTORY CLEANING</h2>
+                    <p>Pre-Production Cleaning</p>
+                    <p class="card-details">15 Slides • Clean Factory, Safe Products</p>
+                    <span class="card-badge">Protocol</span>
+                </div>
+                <div class="presentation-card" data-category="production" onclick="selectPresentation('packaging-protocol')">
+                    <div class="card-icon"><i class="fas fa-box-taped"></i></div>
+                    <h2>PACKAGING PROTOCOL</h2>
+                    <p>Final Product Packaging</p>
+                    <p class="card-details">15 Slides • All Products</p>
+                    <span class="card-badge">Protocol</span>
+                </div>
+                <div class="presentation-card" data-category="distribution" onclick="selectPresentation('warehouse-transfer')">
+                    <div class="card-icon"><i class="fas fa-dolly"></i></div>
+                    <h2>WAREHOUSE TRANSFER</h2>
+                    <p>Product Handoff Procedures</p>
+                    <p class="card-details">15 Slides • Secure Transfer</p>
+                    <span class="card-badge">Protocol</span>
+                </div>
+                <div class="presentation-card" data-category="sales" onclick="selectPresentation('order-delivery')">
+                    <div class="card-icon"><i class="fas fa-truck-fast"></i></div>
+                    <h2>ORDER & DELIVERY</h2>
+                    <p>Order to Feedback Cycle</p>
+                    <p class="card-details">15 Slides • Complete Customer Care</p>
+                    <span class="card-badge">Protocol</span>
+                </div>
+            </div>
+            <p class="menu-footer">© 2026 BONNESANTE MEDICALS - Excellence in Healthcare</p>
+            <div class="watermark">
+                <img src="LOGO.PNG" alt="">
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Panel -->
+    <div id="settingsPanel" class="settings-panel">
+        <div class="settings-header">
+            <h2><i class="fas fa-cog"></i> Presentation Settings</h2>
+            <button class="close-settings" onclick="toggleSettings()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="settings-content">
+            <div class="settings-section">
+                <h3>Slide Editor</h3>
+                <label>Select Slide to Edit:</label>
+                <select id="slideSelector" onchange="loadSlideForEdit()"></select>
+                <label>Slide Title:</label>
+                <input type="text" id="editTitle" placeholder="Enter slide title">
+                <label>Slide Content:</label>
+                <textarea id="editContent" rows="10" placeholder="Enter slide content (use | for bullet points)"></textarea>
+                <button class="save-btn" onclick="saveSlideChanges()"><i class="fas fa-save"></i> Save Changes</button>
+            </div>
+            <div class="settings-section">
+                <h3>Image Upload</h3>
+                <label>Select Slide:</label>
+                <select id="imageSlideSelector"></select>
+                <label>Upload Image:</label>
+                <input type="file" id="imageUpload" accept="image/*" onchange="handleImageUpload()">
+                <div id="imagePreview" class="image-preview"></div>
+                <button class="save-btn" onclick="applyImage()"><i class="fas fa-image"></i> Apply Image</button>
+            </div>
+            <div class="settings-section">
+                <h3>Transition Settings</h3>
+                <label>Transition Mode:</label>
+                <select id="transitionMode" onchange="updateTransitionMode()">
+                    <option value="auto" selected>Auto (Smart by Slide Type)</option>
+                    <option value="manual">Manual (Same for All)</option>
+                </select>
+                <label>Transition Type:</label>
+                <select id="transitionType" onchange="updateTransition()">
+                    <option value="morph">Morph (Content Slides)</option>
+                    <option value="fade">Fade (Title/Conclusion)</option>
+                    <option value="uncover">Uncover (Highlight/Process)</option>
+                    <option value="slide">Slide (Flow Diagrams)</option>
+                    <option value="zoom">Zoom</option>
+                    <option value="flip">Flip</option>
+                    <option value="cube">Cube</option>
+                </select>
+                <label>Transition Speed (ms):</label>
+                <input type="range" id="transitionSpeed" min="300" max="1500" value="800" onchange="updateTransitionSpeed()">
+                <span id="speedValue">800ms</span>
+                <p class="settings-hint"><i class="fas fa-info-circle"></i> Auto mode applies Fade for title/conclusion, Morph for content, and Uncover for highlight/process slides.</p>
+            </div>
+            <div class="settings-section">
+                <h3>Theme Colors</h3>
+                <label>Primary Color:</label>
+                <input type="color" id="primaryColor" value="#1a5f7a" onchange="updateTheme()">
+                <label>Secondary Color:</label>
+                <input type="color" id="secondaryColor" value="#57c5b6" onchange="updateTheme()">
+                <label>Accent Color:</label>
+                <input type="color" id="accentColor" value="#159895" onchange="updateTheme()">
+            </div>
+        </div>
+    </div>
+
+    <!-- Zoom Modal -->
+    <div id="zoomModal" class="zoom-modal">
+        <div class="zoom-content">
+            <button class="zoom-close" onclick="closeZoom()"><i class="fas fa-times"></i></button>
+            <div class="zoom-controls">
+                <button onclick="adjustZoom(-0.1)"><i class="fas fa-search-minus"></i></button>
+                <span id="zoomLevel">100%</span>
+                <button onclick="adjustZoom(0.1)"><i class="fas fa-search-plus"></i></button>
+                <button onclick="resetZoom()"><i class="fas fa-undo"></i></button>
+            </div>
+            <div id="zoomedSlide" class="zoomed-slide"></div>
+        </div>
+    </div>
+
+    <!-- Main Presentation Container -->
+    <div class="presentation-container" id="presentationContainer">
+        <!-- Controls -->
+        <div class="controls">
+            <button class="control-btn home-btn" onclick="showMenu()" title="Home">
+                <i class="fas fa-home"></i>
+            </button>
+            <button class="control-btn settings-btn" onclick="toggleSettings()" title="Settings">
+                <i class="fas fa-cog"></i>
+            </button>
+            <button class="control-btn fullscreen-btn" onclick="toggleFullscreen()" title="Fullscreen">
+                <i class="fas fa-expand"></i>
+            </button>
+            <button class="control-btn zoom-btn" onclick="openZoom()" title="Zoom">
+                <i class="fas fa-search-plus"></i>
+            </button>
+        </div>
+
+        <!-- Slide Counter -->
+        <div class="slide-counter">
+            <span id="currentSlide">1</span> / <span id="totalSlides">23</span>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar">
+            <div class="progress" id="progress"></div>
+        </div>
+
+        <!-- Slides Container -->
+        <div class="slides-wrapper" id="slidesWrapper">
+            <!-- Slides will be generated by JavaScript -->
+        </div>
+
+        <!-- Navigation Buttons -->
+        <button class="nav-btn prev-btn" onclick="prevSlide()" id="prevBtn">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="nav-btn next-btn" onclick="nextSlide()" id="nextBtn">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+
+        <!-- Slide Thumbnails -->
+        <div class="thumbnails-container" id="thumbnailsContainer">
+            <button class="thumb-toggle" onclick="toggleThumbnails()">
+                <i class="fas fa-th"></i>
+            </button>
+            <div class="thumbnails" id="thumbnails"></div>
+        </div>
+    </div>
+
+    <!-- Company Footer -->
+    <div class="company-footer">
+        <span>© 2026 BONNESANTE MEDICALS - Excellence in Healthcare</span>
+    </div>
+
+    <!-- Watermark for Slides -->
+    <div class="slide-watermark">
+        <img src="LOGO.PNG" alt="">
+    </div>
+
+    <!-- Original Core Presentations -->
+    <script src="slides-data.js"></script>
+    <script src="hygiene-slides-data.js"></script>
+    <script src="organization-slides-data.js"></script>
+    
+    <!-- General Staff Training (01-05) -->
+    <script src="presentations/01-company-orientation.js"></script>
+    <script src="presentations/02-basic-wound-care.js"></script>
+    <script src="presentations/03-product-knowledge.js"></script>
+    <script src="presentations/04-qms-awareness.js"></script>
+    <script src="presentations/05-hse-training.js"></script>
+    
+    <!-- Production Staff Training (06-13) -->
+    <script src="presentations/06-gmp-production.js"></script>
+    <script src="presentations/07-sop-compliance.js"></script>
+    <script src="presentations/08-raw-material-handling.js"></script>
+    <script src="presentations/09-water-purification.js"></script>
+    <script src="presentations/10-liquid-compounding.js"></script>
+    <script src="presentations/11-quality-control.js"></script>
+    <script src="presentations/12-packaging-labeling.js"></script>
+    <script src="presentations/13-equipment-handling.js"></script>
+    
+    <!-- Sales Staff Training (14-18) -->
+    <script src="presentations/14-clinical-selling.js"></script>
+    <script src="presentations/15-hospital-sales.js"></script>
+    <script src="presentations/16-regulatory-compliance-sales.js"></script>
+    <script src="presentations/17-customer-service.js"></script>
+    <script src="presentations/18-distribution-awareness.js"></script>
+    
+    <!-- Marketing Staff Training (19-23) -->
+    <script src="presentations/19-ethical-marketing.js"></script>
+    <script src="presentations/20-market-intelligence.js"></script>
+    <script src="presentations/21-medical-communication.js"></script>
+    <script src="presentations/22-brand-management.js"></script>
+    <script src="presentations/23-digital-marketing.js"></script>
+    
+    <!-- Distribution & Warehouse Staff (24-25) -->
+    <script src="presentations/24-gdp.js"></script>
+    <script src="presentations/25-logistics-cold-chain.js"></script>
+    
+    <!-- Management & Supervisory (26-28) -->
+    <script src="presentations/26-leadership-management.js"></script>
+    <script src="presentations/27-risk-management.js"></script>
+    <script src="presentations/28-inspection-readiness.js"></script>
+    
+    <!-- CPD Training (29-30) -->
+    <script src="presentations/29-advanced-wound-care.js"></script>
+    <script src="presentations/30-performance-competency.js"></script>
+    
+    <!-- Illustrated SOPs (31-33) -->
+    <script src="presentations/31-sop-wound-clex.js"></script>
+    <script src="presentations/32-sop-hera-wound-gel.js"></script>
+    <script src="presentations/33-sop-wound-care-gauze.js"></script>
+    
+    <!-- Operational Protocols (34-42) -->
+    <script src="presentations/34-ppe-wearing-protocol.js"></script>
+    <script src="presentations/35-contamination-breach.js"></script>
+    <script src="presentations/36-line-cleaning.js"></script>
+    <script src="presentations/37-production-planning.js"></script>
+    <script src="presentations/38-bottle-washing.js"></script>
+    <script src="presentations/39-factory-cleaning.js"></script>
+    <script src="presentations/40-packaging-protocol.js"></script>
+    <script src="presentations/41-warehouse-transfer.js"></script>
+    <script src="presentations/42-order-delivery.js"></script>
+    
+    <script src="presentation.js"></script>
+</body>
+</html>

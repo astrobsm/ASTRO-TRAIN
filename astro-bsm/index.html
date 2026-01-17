@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a365d">
+    <meta name="description" content="ASTRO-BSM Factory Operations & Duty Roster Management System">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ASTRO-BSM">
+    
+    <title>ASTRO-BSM Factory Operations</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+    <link rel="apple-touch-icon" href="icons/icon.svg">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+    <!-- Offline Indicator -->
+    <div id="offlineIndicator" class="offline-indicator hidden">
+        <i class="fas fa-wifi-slash"></i>
+        <span>Offline Mode</span>
+    </div>
+
+    <!-- App Container -->
+    <div id="app" class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-industry"></i>
+                    <span>ASTRO-BSM</span>
+                </div>
+                <button class="sidebar-toggle" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            
+            <!-- Back to Training Portal -->
+            <a href="../index.html" class="back-to-portal">
+                <i class="fas fa-arrow-left"></i>
+                <span>Training Portal</span>
+            </a>
+            
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-page="dashboard" onclick="navigateTo('dashboard')">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-page="staff" onclick="navigateTo('staff')">
+                    <i class="fas fa-users"></i>
+                    <span>Staff</span>
+                </a>
+                <a href="#" class="nav-item" data-page="duties" onclick="navigateTo('duties')">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span>Duties</span>
+                </a>
+                <a href="#" class="nav-item" data-page="roster" onclick="navigateTo('roster')">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Duty Roster</span>
+                </a>
+                <a href="#" class="nav-item" data-page="production" onclick="navigateTo('production')">
+                    <i class="fas fa-cogs"></i>
+                    <span>Production</span>
+                </a>
+                <a href="#" class="nav-item" data-page="logs" onclick="navigateTo('logs')">
+                    <i class="fas fa-history"></i>
+                    <span>Logs & Reports</span>
+                </a>
+                <a href="#" class="nav-item" data-page="settings" onclick="navigateTo('settings')">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="sync-status" id="syncStatus">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Data Saved Locally</span>
+                </div>
+                <div class="version">v1.0.0</div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main id="mainContent" class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <button class="menu-toggle" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 id="pageTitle">Dashboard</h1>
+                <div class="header-actions">
+                    <span class="current-date" id="currentDate"></span>
+                    <button class="btn-icon" onclick="exportData()" title="Export Data">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Page Container -->
+            <div id="pageContainer" class="page-container">
+                <!-- Dashboard Page -->
+                <section id="page-dashboard" class="page active">
+                    <div class="dashboard-grid">
+                        <!-- Quick Stats -->
+                        <div class="stat-card">
+                            <div class="stat-icon staff">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="statStaffCount">0</h3>
+                                <p>Active Staff</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon duties">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="statDutiesCount">0</h3>
+                                <p>Total Duties</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon pending">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="statPendingTasks">0</h3>
+                                <p>Pending Tasks</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon production">
+                                <i class="fas fa-industry"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="statProductionCount">0</h3>
+                                <p>Scheduled Productions</p>
+                            </div>
+                        </div>
+
+                        <!-- Today's Schedule -->
+                        <div class="dashboard-card today-schedule">
+                            <div class="card-header">
+                                <h2><i class="fas fa-calendar-day"></i> Today's Schedule</h2>
+                                <span class="badge" id="todayDayBadge">-</span>
+                            </div>
+                            <div class="card-body" id="todayScheduleContent">
+                                <p class="empty-state">No schedule for today</p>
+                            </div>
+                        </div>
+
+                        <!-- Upcoming Production -->
+                        <div class="dashboard-card upcoming-production">
+                            <div class="card-header">
+                                <h2><i class="fas fa-flask"></i> Upcoming Production</h2>
+                            </div>
+                            <div class="card-body" id="upcomingProductionContent">
+                                <p class="empty-state">No upcoming production scheduled</p>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="dashboard-card quick-actions">
+                            <div class="card-header">
+                                <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="action-buttons">
+                                    <button class="action-btn" onclick="navigateTo('roster'); showAddRosterModal()">
+                                        <i class="fas fa-plus-circle"></i>
+                                        <span>New Roster</span>
+                                    </button>
+                                    <button class="action-btn" onclick="navigateTo('production'); showAddProductionModal()">
+                                        <i class="fas fa-calendar-plus"></i>
+                                        <span>Schedule Production</span>
+                                    </button>
+                                    <button class="action-btn" onclick="generateWeeklyRoster()">
+                                        <i class="fas fa-sync-alt"></i>
+                                        <span>Auto-Generate Roster</span>
+                                    </button>
+                                    <button class="action-btn" onclick="navigateTo('logs')">
+                                        <i class="fas fa-file-alt"></i>
+                                        <span>View Reports</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Staff Page -->
+                <section id="page-staff" class="page">
+                    <div class="page-header">
+                        <h2>Staff Management</h2>
+                        <button class="btn btn-primary" onclick="showAddStaffModal()">
+                            <i class="fas fa-plus"></i> Add Staff
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="staffTable">
+                            <thead>
+                                <tr>
+                                    <th>Staff ID</th>
+                                    <th>Full Name</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="staffTableBody">
+                                <!-- Staff rows will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Duties Page -->
+                <section id="page-duties" class="page">
+                    <div class="page-header">
+                        <h2>Duties Management</h2>
+                        <button class="btn btn-primary" onclick="showAddDutyModal()">
+                            <i class="fas fa-plus"></i> Add Duty
+                        </button>
+                    </div>
+                    <div class="duties-grid" id="dutiesGrid">
+                        <!-- Duty cards will be populated here -->
+                    </div>
+                </section>
+
+                <!-- Roster Page -->
+                <section id="page-roster" class="page">
+                    <div class="page-header">
+                        <h2>Duty Roster</h2>
+                        <div class="header-controls">
+                            <select id="rosterWeekSelect" onchange="loadRosterForWeek()">
+                                <!-- Week options populated dynamically -->
+                            </select>
+                            <button class="btn btn-primary" onclick="showAddRosterModal()">
+                                <i class="fas fa-plus"></i> Assign Duty
+                            </button>
+                            <button class="btn btn-secondary" onclick="generateWeeklyRoster()">
+                                <i class="fas fa-magic"></i> Auto-Generate
+                            </button>
+                        </div>
+                    </div>
+                    <div class="roster-view">
+                        <div class="roster-days">
+                            <div class="roster-day" data-day="monday">
+                                <div class="day-header">
+                                    <h3>Monday</h3>
+                                    <span class="day-date" id="mondayDate">-</span>
+                                </div>
+                                <div class="day-assignments" id="mondayAssignments">
+                                    <!-- Monday assignments -->
+                                </div>
+                            </div>
+                            <div class="roster-day" data-day="wednesday">
+                                <div class="day-header">
+                                    <h3>Wednesday</h3>
+                                    <span class="day-date" id="wednesdayDate">-</span>
+                                </div>
+                                <div class="day-assignments" id="wednesdayAssignments">
+                                    <!-- Wednesday assignments -->
+                                </div>
+                            </div>
+                            <div class="roster-day" data-day="saturday">
+                                <div class="day-header">
+                                    <h3>Saturday</h3>
+                                    <span class="day-date" id="saturdayDate">-</span>
+                                </div>
+                                <div class="day-assignments" id="saturdayAssignments">
+                                    <!-- Saturday assignments -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Production Page -->
+                <section id="page-production" class="page">
+                    <div class="page-header">
+                        <h2>Production Scheduling</h2>
+                        <button class="btn btn-primary" onclick="showAddProductionModal()">
+                            <i class="fas fa-plus"></i> New Production Schedule
+                        </button>
+                    </div>
+                    <div class="production-list" id="productionList">
+                        <!-- Production schedules will be populated here -->
+                    </div>
+                </section>
+
+                <!-- Logs & Reports Page -->
+                <section id="page-logs" class="page">
+                    <div class="page-header">
+                        <h2>Logs & Reports</h2>
+                        <div class="header-controls">
+                            <select id="reportType" onchange="generateReport()">
+                                <option value="daily">Daily Duty Report</option>
+                                <option value="weekly">Weekly Roster Report</option>
+                                <option value="production">Production Schedule Report</option>
+                            </select>
+                            <button class="btn btn-secondary" onclick="exportReport('pdf')">
+                                <i class="fas fa-file-pdf"></i> Export PDF
+                            </button>
+                            <button class="btn btn-secondary" onclick="exportReport('csv')">
+                                <i class="fas fa-file-csv"></i> Export CSV
+                            </button>
+                        </div>
+                    </div>
+                    <div class="logs-container">
+                        <div class="report-preview" id="reportPreview">
+                            <!-- Report content will be generated here -->
+                        </div>
+                        <div class="audit-log">
+                            <h3><i class="fas fa-shield-alt"></i> Audit Trail</h3>
+                            <div class="log-entries" id="auditLogEntries">
+                                <!-- Audit log entries -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Settings Page -->
+                <section id="page-settings" class="page">
+                    <div class="page-header">
+                        <h2>Settings</h2>
+                    </div>
+                    <div class="settings-container">
+                        <div class="settings-section">
+                            <h3><i class="fas fa-user-shield"></i> Access Control</h3>
+                            <div class="setting-item">
+                                <label>Current Role:</label>
+                                <select id="userRole" onchange="changeUserRole()">
+                                    <option value="admin">Administrator</option>
+                                    <option value="supervisor">Supervisor</option>
+                                    <option value="staff">Staff</option>
+                                </select>
+                            </div>
+                            <div class="setting-item">
+                                <label>PIN Protection:</label>
+                                <button class="btn btn-secondary" onclick="showSetPinModal()">
+                                    <i class="fas fa-key"></i> Set PIN
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-section">
+                            <h3><i class="fas fa-clock"></i> Working Hours</h3>
+                            <div class="setting-item">
+                                <label>Start Time:</label>
+                                <input type="time" id="workStartTime" value="08:30" onchange="saveSettings()">
+                            </div>
+                            <div class="setting-item">
+                                <label>End Time:</label>
+                                <input type="time" id="workEndTime" value="17:00" onchange="saveSettings()">
+                            </div>
+                        </div>
+                        
+                        <div class="settings-section">
+                            <h3><i class="fas fa-database"></i> Data Management</h3>
+                            <div class="setting-item">
+                                <label>Backup Data:</label>
+                                <button class="btn btn-secondary" onclick="backupData()">
+                                    <i class="fas fa-download"></i> Download Backup
+                                </button>
+                            </div>
+                            <div class="setting-item">
+                                <label>Restore Data:</label>
+                                <input type="file" id="restoreFile" accept=".json" onchange="restoreData()" hidden>
+                                <button class="btn btn-secondary" onclick="document.getElementById('restoreFile').click()">
+                                    <i class="fas fa-upload"></i> Restore from Backup
+                                </button>
+                            </div>
+                            <div class="setting-item danger">
+                                <label>Reset All Data:</label>
+                                <button class="btn btn-danger" onclick="confirmResetData()">
+                                    <i class="fas fa-trash-alt"></i> Reset Application
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-section">
+                            <h3><i class="fas fa-info-circle"></i> About</h3>
+                            <div class="about-info">
+                                <p><strong>ASTRO-BSM Factory Operations</strong></p>
+                                <p>Version 1.0.0</p>
+                                <p>© 2026 BONNESANTE MEDICALS</p>
+                                <p class="tagline">GMP-Compliant Factory Management System</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Container -->
+    <div id="modalContainer" class="modal-container hidden">
+        <div class="modal-backdrop" onclick="closeModal()"></div>
+        <div class="modal" id="modalContent">
+            <!-- Modal content will be injected here -->
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="js/db.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/staff.js"></script>
+    <script src="js/duties.js"></script>
+    <script src="js/roster.js"></script>
+    <script src="js/production.js"></script>
+    <script src="js/reports.js"></script>
+    <script src="js/app.js"></script>
+    
+    <!-- Initialize Application -->
+    <script>
+        // Start the application when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            initApp();
+        });
+        
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker registered:', reg.scope))
+                    .catch(err => console.log('Service Worker registration failed:', err));
+            });
+        }
+    </script>
+</body>
+</html>
