@@ -1001,11 +1001,24 @@ table {
 
 .task-row {
     display: grid;
-    grid-template-columns: 1fr 150px 150px 100px 120px;
-    gap: var(--spacing-4);
+    grid-template-columns: 40px 1fr 140px 90px 50px 50px;
+    gap: var(--spacing-3);
     padding: var(--spacing-3) var(--spacing-4);
     border-bottom: 1px solid var(--gray-100);
     align-items: center;
+    transition: background 0.2s ease;
+}
+
+.task-row:hover:not(.task-header) {
+    background: var(--primary-50);
+}
+
+.task-row.task-completed {
+    background: var(--success-100);
+}
+
+.task-row.task-completed:hover {
+    background: #b8e6c4;
 }
 
 .task-row:last-child {
@@ -1017,10 +1030,24 @@ table {
     font-weight: 600;
     color: var(--gray-700);
     font-size: var(--font-size-sm);
+    cursor: default !important;
+}
+
+.task-header:hover {
+    background: var(--gray-50) !important;
+}
+
+.task-order {
+    font-weight: 600;
+    color: var(--primary-600);
+    text-align: center;
 }
 
 .task-name {
     font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .task-staff {
@@ -1031,6 +1058,13 @@ table {
 .task-time {
     font-size: var(--font-size-sm);
     color: var(--gray-600);
+}
+
+.task-qc {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
 }
 
 .task-checkbox {

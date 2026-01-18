@@ -6,7 +6,7 @@
 // Cache for production data
 let productionCache = [];
 
-// Production stages/tasks
+// Production stages/tasks (default generic stages)
 const PRODUCTION_STAGES = [
     { id: 'raw_material_prep', name: 'Raw Material Preparation', order: 1 },
     { id: 'packaging_prep', name: 'Packaging Preparation', order: 2 },
@@ -16,6 +16,241 @@ const PRODUCTION_STAGES = [
     { id: 'cleaning', name: 'Equipment Cleaning', order: 6 },
     { id: 'line_clearance', name: 'Line Clearance', order: 7 }
 ];
+
+// Product-specific production tasks
+const PRODUCT_SPECIFIC_TASKS = {
+    'sterile_dressing_pack': [
+        { 
+            id: 'gauze_unrolling', 
+            name: 'Gauze Unrolling', 
+            order: 1,
+            description: 'Controlled unrolling of medical-grade gauze rolls to prepare flat gauze sheets for cutting and folding without contamination or distortion.',
+            steps: [
+                'Inspect gauze roll packaging integrity before opening',
+                'Unroll gauze smoothly on a clean, designated work surface',
+                'Avoid stretching or tearing of fibers',
+                'Maintain uniform tension throughout unrolling'
+            ],
+            qcChecks: [
+                'Gauze remains intact, clean, and free of debris',
+                'No visible fraying, tearing, or discoloration',
+                'Batch number recorded',
+                'Operator and time logged'
+            ]
+        },
+        { 
+            id: 'cotton_wool_unrolling', 
+            name: 'Cotton Wool Unrolling', 
+            order: 2,
+            description: 'Preparation of absorbent cotton wool sheets from compressed rolls for subsequent cutting and shaping.',
+            steps: [
+                'Unwrap cotton roll using clean gloves',
+                'Unroll evenly without clumping',
+                'Lay flat on sanitized surface'
+            ],
+            qcChecks: [
+                'Cotton is fluffy, uniform, and uncontaminated',
+                'No foreign particles present',
+                'Moisture-free',
+                'Batch and operator recorded'
+            ]
+        },
+        { 
+            id: 'gauze_cutting', 
+            name: 'Gauze Cutting', 
+            order: 3,
+            description: 'Precision cutting of gauze into standardized dimensions for dressing packs.',
+            steps: [
+                'Measure according to approved specification',
+                'Cut using sterile or dedicated cutting tools',
+                'Stack cut pieces uniformly'
+            ],
+            qcChecks: [
+                'Correct dimensions achieved',
+                'Clean edges without excessive lint',
+                'Count matches production target',
+                'Reject off-size pieces'
+            ]
+        },
+        { 
+            id: 'cotton_wool_cutting', 
+            name: 'Cotton Wool Cutting', 
+            order: 4,
+            description: 'Cutting cotton wool into required sizes for padding or wound coverage.',
+            steps: [
+                'Measure thickness and length accurately',
+                'Cut smoothly to prevent fiber shredding'
+            ],
+            qcChecks: [
+                'Uniform size and thickness',
+                'No fiber shedding',
+                'Weight/size within tolerance'
+            ]
+        },
+        { 
+            id: 'gauze_folding', 
+            name: 'Gauze Folding', 
+            order: 5,
+            description: 'Systematic folding of gauze pieces into standardized forms for sterile dressing inclusion.',
+            steps: [
+                'Fold according to defined pattern (e.g. square / rectangular)',
+                'Ensure even edges and alignment'
+            ],
+            qcChecks: [
+                'Uniform folds across batch',
+                'No exposed loose fibers',
+                'Correct final dimensions'
+            ]
+        },
+        { 
+            id: 'cotton_wool_folding', 
+            name: 'Cotton Wool Folding', 
+            order: 6,
+            description: 'Folding cotton wool pads to required thickness and size for dressing packs.',
+            steps: [
+                'Fold gently to maintain absorbency',
+                'Avoid over-compression'
+            ],
+            qcChecks: [
+                'Consistent thickness',
+                'Adequate softness retained',
+                'No tearing'
+            ]
+        },
+        { 
+            id: 'cotton_ball_rolling', 
+            name: 'Cotton Wool Ball Rolling', 
+            order: 7,
+            description: 'Manual or semi-manual rolling of cotton wool into spherical balls for wound cleaning or padding.',
+            steps: [
+                'Measure cotton quantity per ball',
+                'Roll evenly between gloved hands'
+            ],
+            qcChecks: [
+                'Uniform size and weight',
+                'No loose fibers',
+                'Smooth surface texture'
+            ]
+        },
+        { 
+            id: 'pouch_cutting', 
+            name: 'Dressing Pack Pouch Cutting', 
+            order: 8,
+            description: 'Cutting sterile-grade packaging material into pouch sizes suitable for dressing packs.',
+            steps: [
+                'Measure pouch dimensions accurately',
+                'Cut using clean cutting tools'
+            ],
+            qcChecks: [
+                'Correct pouch size',
+                'Clean edges without perforations',
+                'Packaging material integrity intact'
+            ]
+        },
+        { 
+            id: 'pack_placement', 
+            name: 'Dressing Pack Placement into Pouches', 
+            order: 9,
+            description: 'Assembly of folded gauze, cotton wool, and accessories into pre-cut pouches under clean conditions.',
+            steps: [
+                'Verify component count per pack',
+                'Place components neatly without compression',
+                'Maintain clean handling technique'
+            ],
+            qcChecks: [
+                'Correct items present in each pack',
+                'No contamination or misplacement',
+                'Pack checklist verified'
+            ]
+        },
+        { 
+            id: 'pack_sealing', 
+            name: 'Dressing Pack Sealing', 
+            order: 10,
+            description: 'Sealing of pouches to maintain sterility until use.',
+            steps: [
+                'Use calibrated heat sealer',
+                'Seal edges uniformly'
+            ],
+            qcChecks: [
+                'Seal integrity intact',
+                'No air leaks or incomplete seals',
+                'Seal width within standard'
+            ]
+        },
+        { 
+            id: 'sterilization', 
+            name: 'Sterilization', 
+            order: 11,
+            description: 'Elimination of all microorganisms from sealed dressing packs using approved sterilization method.',
+            steps: [
+                'Load packs according to sterilizer capacity',
+                'Run validated sterilization cycle',
+                'Allow adequate cooling period'
+            ],
+            qcChecks: [
+                'Sterilization indicators (chemical/biological) passed',
+                'Cycle parameters achieved',
+                'Sterilization batch logged'
+            ]
+        },
+        { 
+            id: 'bagging', 
+            name: 'Dressing Pack Bagging (in 20s)', 
+            order: 12,
+            description: 'Secondary packaging of sterilized dressing packs into groups of twenty for distribution.',
+            steps: [
+                'Count exactly 20 packs per bag',
+                'Use clean outer packaging'
+            ],
+            qcChecks: [
+                'Accurate count verified',
+                'Bag sealed and labeled',
+                'Batch number and date visible'
+            ]
+        },
+        { 
+            id: 'warehouse_transfer', 
+            name: 'Transfer to Warehouse', 
+            order: 13,
+            description: 'Movement of finished sterile dressing packs to controlled storage pending distribution.',
+            steps: [
+                'Transport in clean, covered containers',
+                'Store under recommended conditions'
+            ],
+            qcChecks: [
+                'Warehouse temperature and humidity acceptable',
+                'Stock logged into inventory system',
+                'FIFO (First-In-First-Out) applied'
+            ]
+        }
+    ]
+};
+
+/**
+ * Get tasks for a specific product (or default stages)
+ */
+function getTasksForProduct(productId) {
+    if (PRODUCT_SPECIFIC_TASKS[productId]) {
+        return PRODUCT_SPECIFIC_TASKS[productId];
+    }
+    return PRODUCTION_STAGES;
+}
+
+/**
+ * Auto-assign tasks to available staff evenly
+ */
+function autoAssignTasksToStaff(tasks, staffIds) {
+    if (!staffIds || staffIds.length === 0) {
+        return tasks.map(task => ({ ...task, staffId: null }));
+    }
+    
+    // Distribute tasks evenly among staff
+    return tasks.map((task, index) => ({
+        ...task,
+        staffId: staffIds[index % staffIds.length]
+    }));
+}
 
 // Product list
 const PRODUCTS = [
@@ -102,30 +337,36 @@ function renderProductionList() {
                     
                     <div class="production-tasks">
                         <div class="task-row task-header">
+                            <div>#</div>
                             <div>Task</div>
                             <div>Assigned To</div>
-                            <div>Time</div>
                             <div>Status</div>
-                            <div>Verified</div>
+                            <div>QC</div>
+                            <div>Done</div>
                         </div>
-                        ${production.tasks ? production.tasks.map(task => `
-                            <div class="task-row" data-task-id="${task.id}">
-                                <div class="task-name">${Utils.escapeHtml(task.name)}</div>
-                                <div class="task-staff">${task.staffId ? Staff.getName(task.staffId) : '-'}</div>
-                                <div class="task-time">${task.startTime ? Utils.formatTime(task.startTime) : '-'}</div>
+                        ${production.tasks ? production.tasks.map((task, idx) => `
+                            <div class="task-row ${task.completed ? 'task-completed' : ''}" data-task-id="${task.id}" style="cursor: pointer;" onclick="showProductionTaskDetails(${production.id}, '${task.id}')">
+                                <div class="task-order" style="font-weight: bold; color: var(--primary-600);">${idx + 1}</div>
+                                <div class="task-name" title="${Utils.escapeHtml(task.description || task.name)}">${Utils.escapeHtml(task.name)}</div>
+                                <div class="task-staff">${task.staffId ? Staff.getName(task.staffId) : '<span style="color:var(--warning-500);">Unassigned</span>'}</div>
                                 <div>
                                     <span class="status-badge status-${task.completed ? 'completed' : 'pending'}">
                                         ${task.completed ? 'Done' : 'Pending'}
                                     </span>
                                 </div>
-                                <div class="task-checkbox">
+                                <div class="task-qc">
+                                    ${task.qcPassed === true ? '<i class="fas fa-check-circle" style="color: var(--success-500);" title="QC Passed"></i>' : 
+                                      task.qcPassed === false ? '<i class="fas fa-times-circle" style="color: var(--danger-500);" title="QC Failed"></i>' : 
+                                      '<i class="fas fa-minus-circle" style="color: var(--gray-400);" title="QC Pending"></i>'}
+                                </div>
+                                <div class="task-checkbox" onclick="event.stopPropagation();">
                                     <input type="checkbox" 
                                            ${task.completed ? 'checked' : ''} 
                                            onchange="toggleTaskCompletion(${production.id}, '${task.id}', this.checked)"
                                            ${production.status === 'completed' ? 'disabled' : ''}>
                                 </div>
                             </div>
-                        `).join('') : '<div class="task-row"><div colspan="5" class="empty-state">No tasks defined</div></div>'}
+                        `).join('') : '<div class="task-row"><div colspan="6" class="empty-state">No tasks defined</div></div>'}
                     </div>
                 </div>
                 
@@ -187,7 +428,7 @@ function showAddProductionModal() {
                 </div>
                 <div class="form-group">
                     <label class="required">Product</label>
-                    <select class="form-control" id="productionProductInput" required>
+                    <select class="form-control" id="productionProductInput" required onchange="onProductSelectionChange()">
                         <option value="">Select Product</option>
                         ${PRODUCTS.map(p => `<option value="${p.id}">${Utils.escapeHtml(p.name)}</option>`).join('')}
                     </select>
@@ -222,6 +463,12 @@ function showAddProductionModal() {
             
             <div class="form-group">
                 <label>Required Staff</label>
+                <div style="margin-bottom: 8px;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--primary-600); font-weight: 500;">
+                        <input type="checkbox" id="autoAssignStaff" checked>
+                        <i class="fas fa-magic"></i> Auto-assign tasks evenly to selected staff
+                    </label>
+                </div>
                 <div id="staffSelectionContainer" style="max-height: 150px; overflow-y: auto; border: 1px solid var(--gray-300); border-radius: 8px; padding: 12px;">
                     ${Staff.getActive().map(staff => `
                         <div class="checkbox-group" style="margin-bottom: 8px;">
@@ -233,14 +480,11 @@ function showAddProductionModal() {
             </div>
             
             <div class="form-group">
-                <label>Production Tasks</label>
-                <div id="tasksContainer" style="border: 1px solid var(--gray-300); border-radius: 8px; padding: 12px;">
-                    ${PRODUCTION_STAGES.map(stage => `
-                        <div class="checkbox-group" style="margin-bottom: 8px;">
-                            <input type="checkbox" id="task_${stage.id}" name="selectedTasks" value="${stage.id}" checked>
-                            <label for="task_${stage.id}">${Utils.escapeHtml(stage.name)}</label>
-                        </div>
-                    `).join('')}
+                <label>Production Tasks <span id="taskCountBadge" style="background: var(--primary-500); color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 8px;">0 tasks</span></label>
+                <div id="tasksContainer" style="border: 1px solid var(--gray-300); border-radius: 8px; padding: 12px; max-height: 250px; overflow-y: auto;">
+                    <p style="color: var(--gray-500); text-align: center; padding: 20px;">
+                        <i class="fas fa-arrow-up"></i> Select a product to load its production tasks
+                    </p>
                 </div>
             </div>
             
@@ -265,12 +509,145 @@ function showAddProductionModal() {
 }
 
 /**
+ * Handle product selection change - load product-specific tasks
+ */
+function onProductSelectionChange() {
+    const productId = document.getElementById('productionProductInput').value;
+    const tasksContainer = document.getElementById('tasksContainer');
+    const taskCountBadge = document.getElementById('taskCountBadge');
+    
+    if (!productId) {
+        tasksContainer.innerHTML = `
+            <p style="color: var(--gray-500); text-align: center; padding: 20px;">
+                <i class="fas fa-arrow-up"></i> Select a product to load its production tasks
+            </p>
+        `;
+        taskCountBadge.textContent = '0 tasks';
+        return;
+    }
+    
+    const tasks = getTasksForProduct(productId);
+    const isProductSpecific = PRODUCT_SPECIFIC_TASKS[productId] !== undefined;
+    
+    taskCountBadge.textContent = `${tasks.length} tasks`;
+    taskCountBadge.style.background = isProductSpecific ? 'var(--success-500)' : 'var(--primary-500)';
+    
+    tasksContainer.innerHTML = `
+        ${isProductSpecific ? `
+            <div style="background: var(--success-100); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; color: var(--success-500);">
+                <i class="fas fa-check-circle"></i> <strong>Product-Specific SOP Tasks Loaded</strong>
+            </div>
+        ` : `
+            <div style="background: var(--info-100); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; color: var(--info-500);">
+                <i class="fas fa-info-circle"></i> Using default production stages
+            </div>
+        `}
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+            <button type="button" class="btn btn-sm btn-secondary" onclick="selectAllTasks()">
+                <i class="fas fa-check-double"></i> Select All
+            </button>
+            <button type="button" class="btn btn-sm btn-secondary" onclick="deselectAllTasks()">
+                <i class="fas fa-times"></i> Deselect All
+            </button>
+        </div>
+        ${tasks.map(task => `
+            <div class="checkbox-group task-item" style="margin-bottom: 8px; padding: 8px; background: var(--gray-50); border-radius: 6px;">
+                <input type="checkbox" id="task_${task.id}" name="selectedTasks" value="${task.id}" checked>
+                <label for="task_${task.id}" style="flex: 1;">
+                    <strong>${task.order}. ${Utils.escapeHtml(task.name)}</strong>
+                    ${task.description ? `<br><small style="color: var(--gray-500);">${Utils.escapeHtml(task.description.substring(0, 80))}${task.description.length > 80 ? '...' : ''}</small>` : ''}
+                </label>
+                ${task.description ? `<button type="button" class="btn btn-sm" style="padding: 4px 8px;" onclick="showTaskDetails('${task.id}')" title="View Details"><i class="fas fa-info-circle"></i></button>` : ''}
+            </div>
+        `).join('')}
+    `;
+}
+
+/**
+ * Select all tasks
+ */
+function selectAllTasks() {
+    document.querySelectorAll('input[name="selectedTasks"]').forEach(cb => cb.checked = true);
+}
+
+/**
+ * Deselect all tasks
+ */
+function deselectAllTasks() {
+    document.querySelectorAll('input[name="selectedTasks"]').forEach(cb => cb.checked = false);
+}
+
+/**
+ * Show task details modal
+ */
+function showTaskDetails(taskId) {
+    const productId = document.getElementById('productionProductInput').value;
+    const tasks = getTasksForProduct(productId);
+    const task = tasks.find(t => t.id === taskId);
+    
+    if (!task) return;
+    
+    const content = `
+        <div style="padding: 10px;">
+            <h3 style="color: var(--primary-700); margin-bottom: 16px;">
+                <i class="fas fa-clipboard-list"></i> ${task.order}. ${Utils.escapeHtml(task.name)}
+            </h3>
+            
+            <div style="background: var(--gray-50); padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                <h4 style="color: var(--gray-700); margin-bottom: 8px;"><i class="fas fa-file-alt"></i> Description</h4>
+                <p style="color: var(--gray-600);">${Utils.escapeHtml(task.description || 'No description available')}</p>
+            </div>
+            
+            ${task.steps && task.steps.length > 0 ? `
+                <div style="background: var(--primary-50); padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                    <h4 style="color: var(--primary-700); margin-bottom: 12px;"><i class="fas fa-list-ol"></i> Key Execution Steps</h4>
+                    <ol style="margin: 0; padding-left: 20px; color: var(--gray-700);">
+                        ${task.steps.map(step => `<li style="margin-bottom: 6px;">${Utils.escapeHtml(step)}</li>`).join('')}
+                    </ol>
+                </div>
+            ` : ''}
+            
+            ${task.qcChecks && task.qcChecks.length > 0 ? `
+                <div style="background: var(--success-100); padding: 16px; border-radius: 8px;">
+                    <h4 style="color: var(--success-500); margin-bottom: 12px;"><i class="fas fa-check-double"></i> Quality Control Checks</h4>
+                    <ul style="margin: 0; padding-left: 20px; color: var(--gray-700);">
+                        ${task.qcChecks.map(check => `<li style="margin-bottom: 6px;">${Utils.escapeHtml(check)}</li>`).join('')}
+                    </ul>
+                </div>
+            ` : ''}
+        </div>
+    `;
+    
+    const footer = `
+        <button class="btn btn-primary" onclick="closeModal()">
+            <i class="fas fa-check"></i> Got it
+        </button>
+    `;
+    
+    // Store current modal state and show task details
+    const currentModalContent = document.querySelector('.modal-body').innerHTML;
+    const currentModalTitle = document.querySelector('.modal-title').textContent;
+    const currentModalFooter = document.querySelector('.modal-footer').innerHTML;
+    
+    Utils.showModal(`Task Details: ${task.name}`, content, footer);
+    
+    // Store restore info in a global temp var
+    window._tempModalRestore = {
+        content: currentModalContent,
+        title: currentModalTitle,
+        footer: currentModalFooter
+    };
+}
+
+/**
  * Save Production
  */
 async function saveProduction(event) {
     event.preventDefault();
     
     const editId = document.getElementById('productionEditId').value;
+    const productId = document.getElementById('productionProductInput').value;
+    const autoAssign = document.getElementById('autoAssignStaff')?.checked ?? false;
     
     // Get selected staff
     const selectedStaff = [];
@@ -278,19 +655,26 @@ async function saveProduction(event) {
         selectedStaff.push(parseInt(cb.value));
     });
     
+    // Get product-specific tasks
+    const productTasks = getTasksForProduct(productId);
+    
     // Get selected tasks
-    const selectedTasks = [];
+    let selectedTasks = [];
     document.querySelectorAll('input[name="selectedTasks"]:checked').forEach(cb => {
-        const stage = PRODUCTION_STAGES.find(s => s.id === cb.value);
-        if (stage) {
+        const task = productTasks.find(t => t.id === cb.value);
+        if (task) {
             selectedTasks.push({
-                id: stage.id,
-                name: stage.name,
-                order: stage.order,
+                id: task.id,
+                name: task.name,
+                order: task.order,
+                description: task.description || '',
+                steps: task.steps || [],
+                qcChecks: task.qcChecks || [],
                 staffId: null,
                 startTime: null,
                 endTime: null,
                 completed: false,
+                qcPassed: null,
                 remarks: ''
             });
         }
@@ -299,9 +683,14 @@ async function saveProduction(event) {
     // Sort tasks by order
     selectedTasks.sort((a, b) => a.order - b.order);
     
+    // Auto-assign tasks to staff if enabled
+    if (autoAssign && selectedStaff.length > 0) {
+        selectedTasks = autoAssignTasksToStaff(selectedTasks, selectedStaff);
+    }
+    
     const productionData = {
         date: document.getElementById('productionDateInput').value,
-        productId: document.getElementById('productionProductInput').value,
+        productId: productId,
         startTime: document.getElementById('productionStartTimeInput').value,
         endTime: document.getElementById('productionEndTimeInput').value,
         targetQuantity: parseInt(document.getElementById('productionQuantityInput').value),
@@ -367,6 +756,167 @@ async function toggleTaskCompletion(productionId, taskId, completed) {
     } catch (error) {
         console.error('Error toggling task:', error);
         Utils.showToast('error', 'Error', 'Failed to update task');
+    }
+}
+
+/**
+ * Show production task details with QC options
+ */
+async function showProductionTaskDetails(productionId, taskId) {
+    const production = productionCache.find(p => p.id === productionId);
+    if (!production) return;
+    
+    const task = production.tasks.find(t => t.id === taskId);
+    if (!task) return;
+    
+    const staffName = task.staffId ? Staff.getName(task.staffId) : 'Unassigned';
+    const activeStaff = Staff.getActive();
+    
+    const content = `
+        <div style="padding: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="color: var(--primary-700); margin: 0;">
+                    <i class="fas fa-clipboard-list"></i> ${task.order}. ${Utils.escapeHtml(task.name)}
+                </h3>
+                <span class="status-badge status-${task.completed ? 'completed' : 'pending'}" style="font-size: 14px;">
+                    ${task.completed ? 'Completed' : 'Pending'}
+                </span>
+            </div>
+            
+            ${task.description ? `
+                <div style="background: var(--gray-50); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                    <h4 style="color: var(--gray-700); margin-bottom: 8px; font-size: 14px;"><i class="fas fa-file-alt"></i> Description</h4>
+                    <p style="color: var(--gray-600); margin: 0; font-size: 13px;">${Utils.escapeHtml(task.description)}</p>
+                </div>
+            ` : ''}
+            
+            ${task.steps && task.steps.length > 0 ? `
+                <div style="background: var(--primary-50); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                    <h4 style="color: var(--primary-700); margin-bottom: 10px; font-size: 14px;"><i class="fas fa-list-ol"></i> Execution Steps</h4>
+                    <ol style="margin: 0; padding-left: 20px; color: var(--gray-700); font-size: 13px;">
+                        ${task.steps.map(step => `<li style="margin-bottom: 4px;">${Utils.escapeHtml(step)}</li>`).join('')}
+                    </ol>
+                </div>
+            ` : ''}
+            
+            ${task.qcChecks && task.qcChecks.length > 0 ? `
+                <div style="background: var(--success-100); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                    <h4 style="color: var(--success-500); margin-bottom: 10px; font-size: 14px;"><i class="fas fa-check-double"></i> Quality Control Checks</h4>
+                    <ul style="margin: 0; padding-left: 20px; color: var(--gray-700); font-size: 13px;">
+                        ${task.qcChecks.map(check => `<li style="margin-bottom: 4px;">${Utils.escapeHtml(check)}</li>`).join('')}
+                    </ul>
+                </div>
+            ` : ''}
+            
+            <div style="background: var(--gray-100); padding: 16px; border-radius: 8px;">
+                <h4 style="color: var(--gray-700); margin-bottom: 12px;"><i class="fas fa-edit"></i> Task Management</h4>
+                
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label style="font-size: 13px; margin-bottom: 4px;">Assigned Staff</label>
+                    <select class="form-control" id="taskStaffSelect" style="font-size: 13px;">
+                        <option value="">-- Select Staff --</option>
+                        ${activeStaff.map(s => `<option value="${s.id}" ${task.staffId === s.id ? 'selected' : ''}>${Utils.escapeHtml(s.name)} (${s.role})</option>`).join('')}
+                    </select>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label style="font-size: 13px; margin-bottom: 4px;">QC Status</label>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" class="btn btn-sm ${task.qcPassed === true ? 'btn-success' : 'btn-secondary'}" 
+                                onclick="setTaskQCStatus(${productionId}, '${taskId}', true)" style="flex: 1;">
+                            <i class="fas fa-check"></i> QC Passed
+                        </button>
+                        <button type="button" class="btn btn-sm ${task.qcPassed === false ? 'btn-danger' : 'btn-secondary'}" 
+                                onclick="setTaskQCStatus(${productionId}, '${taskId}', false)" style="flex: 1;">
+                            <i class="fas fa-times"></i> QC Failed
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label style="font-size: 13px; margin-bottom: 4px;">Remarks</label>
+                    <textarea class="form-control" id="taskRemarksInput" style="font-size: 13px;" rows="2" 
+                              placeholder="Any observations or notes">${Utils.escapeHtml(task.remarks || '')}</textarea>
+                </div>
+            </div>
+            
+            ${task.completed ? `
+                <div style="margin-top: 12px; padding: 10px; background: var(--success-100); border-radius: 6px; font-size: 12px; color: var(--success-500);">
+                    <i class="fas fa-check-circle"></i> Completed by ${Utils.escapeHtml(task.completedBy || 'Unknown')} 
+                    ${task.completedAt ? `at ${Utils.formatDateTime(task.completedAt)}` : ''}
+                </div>
+            ` : ''}
+        </div>
+    `;
+    
+    const footer = `
+        <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+        <button class="btn btn-primary" onclick="saveTaskDetails(${productionId}, '${taskId}')">
+            <i class="fas fa-save"></i> Save Changes
+        </button>
+    `;
+    
+    Utils.showModal('Task Details', content, footer);
+}
+
+/**
+ * Set task QC status
+ */
+async function setTaskQCStatus(productionId, taskId, passed) {
+    try {
+        const production = await DB.get(DB.STORES.PRODUCTION, productionId);
+        if (!production) return;
+        
+        const task = production.tasks.find(t => t.id === taskId);
+        if (task) {
+            task.qcPassed = passed;
+            task.qcCheckedAt = Utils.getTimestamp();
+            task.qcCheckedBy = await DB.getSetting('currentUser') || 'Unknown';
+        }
+        
+        await DB.update(DB.STORES.PRODUCTION, production);
+        
+        // Update the modal buttons to reflect the change
+        const passBtn = document.querySelector(`button[onclick="setTaskQCStatus(${productionId}, '${taskId}', true)"]`);
+        const failBtn = document.querySelector(`button[onclick="setTaskQCStatus(${productionId}, '${taskId}', false)"]`);
+        
+        if (passBtn && failBtn) {
+            passBtn.className = `btn btn-sm ${passed ? 'btn-success' : 'btn-secondary'}`;
+            failBtn.className = `btn btn-sm ${!passed ? 'btn-danger' : 'btn-secondary'}`;
+        }
+        
+        Utils.showToast('success', 'Updated', `QC status set to ${passed ? 'Passed' : 'Failed'}`);
+    } catch (error) {
+        console.error('Error setting QC status:', error);
+        Utils.showToast('error', 'Error', 'Failed to update QC status');
+    }
+}
+
+/**
+ * Save task details (staff assignment and remarks)
+ */
+async function saveTaskDetails(productionId, taskId) {
+    try {
+        const production = await DB.get(DB.STORES.PRODUCTION, productionId);
+        if (!production) return;
+        
+        const task = production.tasks.find(t => t.id === taskId);
+        if (task) {
+            const staffSelect = document.getElementById('taskStaffSelect');
+            const remarksInput = document.getElementById('taskRemarksInput');
+            
+            task.staffId = staffSelect.value ? parseInt(staffSelect.value) : null;
+            task.remarks = remarksInput.value.trim();
+            task.updatedAt = Utils.getTimestamp();
+        }
+        
+        await DB.update(DB.STORES.PRODUCTION, production);
+        closeModal();
+        await loadProduction();
+        Utils.showToast('success', 'Saved', 'Task details updated successfully');
+    } catch (error) {
+        console.error('Error saving task details:', error);
+        Utils.showToast('error', 'Error', 'Failed to save task details');
     }
 }
 
@@ -888,15 +1438,40 @@ function exportSingleProductionPDF(productionId) {
     doc.setFont('helvetica', 'normal');
     
     if (production.tasks && production.tasks.length > 0) {
-        production.tasks.forEach(task => {
+        production.tasks.forEach((task, idx) => {
+            // Check if we need a new page
+            if (yPos > 260) {
+                doc.addPage();
+                yPos = 20;
+            }
+            
             const statusIcon = task.completed ? '✅' : '⬜';
+            const qcIcon = task.qcPassed === true ? '✓QC' : task.qcPassed === false ? '✗QC' : '';
             const staffName = task.staffId ? Staff.getName(task.staffId) : 'Unassigned';
             
+            doc.setFont('helvetica', 'bold');
+            doc.text(`${idx + 1}.`, 18, yPos);
             doc.text(statusIcon, 25, yPos);
-            doc.text(task.name, 45, yPos);
-            doc.text(staffName, 120, yPos);
+            doc.text(task.name, 35, yPos);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
+            doc.text(`| ${staffName} ${qcIcon}`, 130, yPos);
+            doc.setFontSize(10);
             
-            yPos += 8;
+            yPos += 6;
+            
+            // Show description if this is an SOP task
+            if (task.description) {
+                doc.setFontSize(8);
+                doc.setTextColor(100, 100, 100);
+                const descLines = doc.splitTextToSize(task.description, 160);
+                doc.text(descLines, 35, yPos);
+                yPos += (descLines.length * 4) + 2;
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(10);
+            }
+            
+            yPos += 3;
         });
     } else {
         doc.text('No tasks defined', 20, yPos);
