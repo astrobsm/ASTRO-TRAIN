@@ -19,11 +19,17 @@ const PRODUCTION_STAGES = [
 
 // Product list
 const PRODUCTS = [
-    { id: 'wound_clex', name: 'WOUND CLEX® Solution', unit: 'bottles' },
-    { id: 'hera_gel', name: 'HERA Wound Gel', unit: 'tubes' },
-    { id: 'wound_gauze', name: 'Wound Care Gauze', unit: 'packs' },
-    { id: 'sanitizer', name: 'Hand Sanitizer', unit: 'bottles' },
-    { id: 'disinfectant', name: 'Surface Disinfectant', unit: 'liters' }
+    { id: 'stopain', name: 'STOPAIN', unit: 'units' },
+    { id: 'honey_gauze_big', name: 'Wound-Care Honey Gauze Big', unit: 'packs' },
+    { id: 'honey_gauze_small', name: 'Wound-Care Honey Gauze Small', unit: 'packs' },
+    { id: 'wound_clex_500ml', name: 'Wound-Clex Solution 500ml', unit: 'bottles' },
+    { id: 'sterile_dressing_pack', name: 'Sterile Dressing Pack', unit: 'packs' },
+    { id: 'sterile_gauze_only', name: 'Sterile Gauze-Only', unit: 'packs' },
+    { id: 'hera_gel_100g', name: 'Hera Wound-Gel 100g', unit: 'tubes' },
+    { id: 'hera_gel_40g', name: 'Hera Wound-Gel 40g', unit: 'tubes' },
+    { id: 'npwt_vac_foam', name: 'NPWT (VAC) Foam', unit: 'units' },
+    { id: 'donor_site', name: 'DONOR-SITE', unit: 'units' },
+    { id: 'heratex', name: 'Heratex', unit: 'units' }
 ];
 
 /**
@@ -128,6 +134,9 @@ function renderProductionList() {
                         Created: ${Utils.formatDateTime(production.createdAt)}
                     </div>
                     <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-sm btn-info" onclick="exportSingleProductionPDF(${production.id})" title="Export & Share on WhatsApp">
+                            <i class="fab fa-whatsapp"></i> Share
+                        </button>
                         ${production.status !== 'completed' ? `
                             <button class="btn btn-sm btn-success" onclick="completeProduction(${production.id})">
                                 <i class="fas fa-check"></i> Complete
@@ -646,6 +655,321 @@ function getUpcomingProduction() {
         .filter(p => p.date >= today && p.status !== 'completed')
         .sort((a, b) => new Date(a.date) - new Date(b.date))
         .slice(0, 5);
+}
+
+/**
+ * Export all scheduled production to PDF
+ */
+function exportProductionToPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    const upcoming = productionCache
+        .filter(p => p.status !== 'completed')
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    if (upcoming.length === 0) {
+        Utils.showToast('warning', 'No Data', 'No scheduled production to export');
+        return;
+    }
+    
+    // Header
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('ASTRO-BSM Production Schedule', 105, 20, { align: 'center' });
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 105, 28, { align: 'center' });
+    
+    let yPos = 40;
+    
+    upcoming.forEach((production, index) => {
+        const product = PRODUCTS.find(p => p.id === production.productId) || { name: production.productId, unit: 'units' };
+        const completedTasks = production.tasks ? production.tasks.filter(t => t.completed).length : 0;
+        const totalTasks = production.tasks ? production.tasks.length : 0;
+        
+        // Check if we need a new page
+        if (yPos > 250) {
+            doc.addPage();
+            yPos = 20;
+        }
+        
+        // Production card header
+        doc.setFillColor(26, 54, 93);
+        doc.rect(15, yPos, 180, 10, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${index + 1}. ${product.name}`, 20, yPos + 7);
+        doc.text(production.status.toUpperCase(), 180, yPos + 7, { align: 'right' });
+        
+        yPos += 15;
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        
+        // Production details
+        doc.text(`Date: ${Utils.formatDateDisplay(production.date)}`, 20, yPos);
+        doc.text(`Time: ${Utils.formatTime(production.startTime)} - ${Utils.formatTime(production.endTime)}`, 100, yPos);
+        yPos += 6;
+        doc.text(`Target: ${production.targetQuantity} ${product.unit}`, 20, yPos);
+        doc.text(`Batch: ${production.batchNumber || 'N/A'}`, 100, yPos);
+        yPos += 6;
+        doc.text(`Progress: ${completedTasks}/${totalTasks} tasks completed`, 20, yPos);
+        
+        yPos += 10;
+        
+        // Tasks table
+        if (production.tasks && production.tasks.length > 0) {
+            doc.setFont('helvetica', 'bold');
+            doc.text('Tasks:', 20, yPos);
+            yPos += 5;
+            
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
+            
+            production.tasks.forEach(task => {
+                const status = task.completed ? '[✓]' : '[ ]';
+                const staffName = task.staffId ? Staff.getName(task.staffId) : 'Unassigned';
+                doc.text(`${status} ${task.name} - ${staffName}`, 25, yPos);
+                yPos += 5;
+            });
+        }
+        
+        // Notes
+        if (production.notes) {
+            yPos += 3;
+            doc.setFont('helvetica', 'italic');
+            doc.text(`Notes: ${production.notes}`, 20, yPos);
+        }
+        
+        yPos += 15;
+    });
+    
+    // Footer
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Page ${i} of ${pageCount}`, 105, 290, { align: 'center' });
+        doc.text('ASTRO-BSM Factory Operations', 15, 290);
+    }
+    
+    // Save and share
+    const fileName = `Production_Schedule_${Utils.formatDate(new Date())}.pdf`;
+    doc.save(fileName);
+    
+    Utils.showToast('success', 'PDF Generated', 'Production schedule exported. Ready to share on WhatsApp!');
+    
+    // Show share instructions
+    setTimeout(() => {
+        showShareInstructions(fileName);
+    }, 500);
+}
+
+/**
+ * Export single production schedule to PDF
+ */
+function exportSingleProductionPDF(productionId) {
+    const production = productionCache.find(p => p.id === productionId);
+    if (!production) {
+        Utils.showToast('error', 'Error', 'Production not found');
+        return;
+    }
+    
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    const product = PRODUCTS.find(p => p.id === production.productId) || { name: production.productId, unit: 'units' };
+    const completedTasks = production.tasks ? production.tasks.filter(t => t.completed).length : 0;
+    const totalTasks = production.tasks ? production.tasks.length : 0;
+    const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    
+    // Header with logo area
+    doc.setFillColor(26, 54, 93);
+    doc.rect(0, 0, 210, 40, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.setFont('helvetica', 'bold');
+    doc.text('ASTRO-BSM', 105, 18, { align: 'center' });
+    
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Production Schedule', 105, 28, { align: 'center' });
+    
+    doc.setFontSize(10);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 105, 36, { align: 'center' });
+    
+    // Product name banner
+    let yPos = 50;
+    doc.setFillColor(46, 125, 50);
+    doc.rect(15, yPos, 180, 12, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text(product.name, 105, yPos + 8, { align: 'center' });
+    
+    // Status badge
+    yPos += 20;
+    doc.setTextColor(0, 0, 0);
+    const statusColor = production.status === 'completed' ? [46, 125, 50] : 
+                        production.status === 'in_progress' ? [255, 152, 0] : [33, 150, 243];
+    doc.setFillColor(...statusColor);
+    doc.roundedRect(85, yPos, 40, 8, 2, 2, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
+    doc.text(production.status.toUpperCase().replace('_', ' '), 105, yPos + 6, { align: 'center' });
+    
+    // Production details box
+    yPos += 18;
+    doc.setTextColor(0, 0, 0);
+    doc.setDrawColor(200, 200, 200);
+    doc.setFillColor(248, 249, 250);
+    doc.roundedRect(15, yPos, 180, 50, 3, 3, 'FD');
+    
+    yPos += 12;
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Production Details', 20, yPos);
+    
+    yPos += 10;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    
+    doc.text(`📅 Date:`, 20, yPos);
+    doc.text(Utils.formatDateDisplay(production.date), 55, yPos);
+    doc.text(`⏰ Time:`, 110, yPos);
+    doc.text(`${Utils.formatTime(production.startTime)} - ${Utils.formatTime(production.endTime)}`, 140, yPos);
+    
+    yPos += 8;
+    doc.text(`📦 Target:`, 20, yPos);
+    doc.text(`${production.targetQuantity} ${product.unit}`, 55, yPos);
+    doc.text(`🏷️ Batch:`, 110, yPos);
+    doc.text(production.batchNumber || 'N/A', 140, yPos);
+    
+    yPos += 8;
+    doc.text(`📊 Progress:`, 20, yPos);
+    doc.text(`${completedTasks}/${totalTasks} tasks (${progress}%)`, 55, yPos);
+    
+    // Progress bar
+    yPos += 8;
+    doc.setFillColor(224, 224, 224);
+    doc.roundedRect(20, yPos, 170, 5, 2, 2, 'F');
+    doc.setFillColor(progress === 100 ? 46 : 33, progress === 100 ? 125 : 150, progress === 100 ? 50 : 243);
+    doc.roundedRect(20, yPos, 170 * (progress / 100), 5, 2, 2, 'F');
+    
+    // Tasks section
+    yPos += 18;
+    doc.setFillColor(26, 54, 93);
+    doc.rect(15, yPos, 180, 10, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Production Tasks', 20, yPos + 7);
+    
+    yPos += 15;
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    
+    // Task headers
+    doc.setFont('helvetica', 'bold');
+    doc.text('Status', 20, yPos);
+    doc.text('Task', 45, yPos);
+    doc.text('Assigned To', 120, yPos);
+    
+    yPos += 3;
+    doc.setDrawColor(200, 200, 200);
+    doc.line(15, yPos, 195, yPos);
+    
+    yPos += 7;
+    doc.setFont('helvetica', 'normal');
+    
+    if (production.tasks && production.tasks.length > 0) {
+        production.tasks.forEach(task => {
+            const statusIcon = task.completed ? '✅' : '⬜';
+            const staffName = task.staffId ? Staff.getName(task.staffId) : 'Unassigned';
+            
+            doc.text(statusIcon, 25, yPos);
+            doc.text(task.name, 45, yPos);
+            doc.text(staffName, 120, yPos);
+            
+            yPos += 8;
+        });
+    } else {
+        doc.text('No tasks defined', 20, yPos);
+        yPos += 8;
+    }
+    
+    // Notes section
+    if (production.notes) {
+        yPos += 5;
+        doc.setFillColor(255, 243, 205);
+        doc.roundedRect(15, yPos, 180, 20, 3, 3, 'F');
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text('📝 Notes:', 20, yPos + 8);
+        doc.setFont('helvetica', 'normal');
+        doc.text(production.notes, 45, yPos + 8);
+    }
+    
+    // Footer
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(128, 128, 128);
+    doc.text('ASTRO-BSM Factory Operations | Confidential Production Document', 105, 285, { align: 'center' });
+    doc.text(`Created: ${Utils.formatDateTime(production.createdAt)}`, 105, 290, { align: 'center' });
+    
+    // Save PDF
+    const fileName = `Production_${product.name.replace(/\s+/g, '_')}_${Utils.formatDate(production.date)}.pdf`;
+    doc.save(fileName);
+    
+    Utils.showToast('success', 'PDF Ready', 'Production schedule saved. Share it on WhatsApp!');
+    
+    setTimeout(() => {
+        showShareInstructions(fileName);
+    }, 500);
+}
+
+/**
+ * Show share instructions modal
+ */
+function showShareInstructions(fileName) {
+    const content = `
+        <div style="text-align: center; padding: 20px;">
+            <i class="fab fa-whatsapp" style="font-size: 64px; color: #25D366; margin-bottom: 20px;"></i>
+            <h3 style="color: var(--gray-700); margin-bottom: 16px;">PDF Downloaded Successfully!</h3>
+            <p style="color: var(--gray-600); margin-bottom: 20px;">
+                Your production schedule has been saved as:<br>
+                <strong style="color: var(--primary-600);">${fileName}</strong>
+            </p>
+            <div style="background: var(--gray-100); border-radius: 8px; padding: 16px; text-align: left;">
+                <h4 style="color: var(--gray-700); margin-bottom: 12px;"><i class="fas fa-share-alt"></i> To share on WhatsApp:</h4>
+                <ol style="color: var(--gray-600); padding-left: 20px; line-height: 1.8;">
+                    <li>Open WhatsApp on your phone</li>
+                    <li>Go to the chat or group you want to share with</li>
+                    <li>Tap the attachment icon (📎)</li>
+                    <li>Select "Document" and choose the downloaded PDF</li>
+                    <li>Send the file!</li>
+                </ol>
+            </div>
+            <div style="margin-top: 20px; padding: 12px; background: #E8F5E9; border-radius: 8px;">
+                <p style="color: #2E7D32; margin: 0;">
+                    <i class="fas fa-lightbulb"></i> <strong>Tip:</strong> On mobile, you can also share directly from your downloads folder to WhatsApp.
+                </p>
+            </div>
+        </div>
+    `;
+    
+    const footer = `
+        <button class="btn btn-primary" onclick="closeModal()">
+            <i class="fas fa-check"></i> Got it!
+        </button>
+    `;
+    
+    Utils.showModal('Share on WhatsApp', content, footer);
 }
 
 // Export production module

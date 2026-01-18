@@ -633,6 +633,15 @@ table {
     background: #2f8a5b;
 }
 
+.btn-info {
+    background: #25D366;
+    color: white;
+}
+
+.btn-info:hover {
+    background: #128C7E;
+}
+
 .btn-danger {
     background: var(--danger-500);
     color: white;
