@@ -19,6 +19,408 @@ const PRODUCTION_STAGES = [
 
 // Product-specific production tasks
 const PRODUCT_SPECIFIC_TASKS = {
+    // ==========================================
+    // WOUND-CLEX SOLUTION 500ml PRODUCTION TASKS
+    // ==========================================
+    'wound_clex_500ml': [
+        {
+            id: 'pre_production_sanitation',
+            name: 'Pre-Production Sanitation',
+            order: 1,
+            description: 'Complete sanitation of production area before starting any manufacturing activities.',
+            steps: [
+                'Verify production area access is restricted',
+                'Remove all materials from previous batch',
+                'Clean all surfaces with approved disinfectant',
+                'Mop floors with disinfectant solution',
+                'Sanitize door handles and switches',
+                'Allow surfaces to dry completely'
+            ],
+            qcChecks: [
+                'Cleaning log signed by operator',
+                'Disinfectant concentration verified',
+                'Visual inspection passed - no residue',
+                'Environmental monitoring (if required)',
+                'Previous batch materials removed and documented'
+            ]
+        },
+        {
+            id: 'personnel_gowning',
+            name: 'Personnel Gowning & Hygiene',
+            order: 2,
+            description: 'Proper gowning and personal hygiene procedures before entering production area.',
+            steps: [
+                'Remove jewelry and personal items',
+                'Wash hands thoroughly with antibacterial soap',
+                'Don clean production attire (gown, cap, mask)',
+                'Put on disposable gloves',
+                'Sanitize gloved hands with alcohol',
+                'Enter production area through air lock'
+            ],
+            qcChecks: [
+                'Gowning procedure followed correctly',
+                'No exposed skin or hair',
+                'Gloves intact without tears',
+                'Personnel health declaration verified',
+                'Gowning log signed'
+            ]
+        },
+        {
+            id: 'bottle_preparation',
+            name: 'Bottle Preparation',
+            order: 3,
+            description: 'Inspection and preparation of empty bottles for filling operation.',
+            steps: [
+                'Verify bottle specifications match batch record',
+                'Inspect bottles for defects (cracks, chips, contamination)',
+                'Count bottles against production target',
+                'Arrange bottles on clean staging area',
+                'Document bottle lot number'
+            ],
+            qcChecks: [
+                'Bottle lot number recorded',
+                'Visual inspection - no defects',
+                'Correct bottle size verified',
+                'Quantity matches production order',
+                'Bottles free from particulate matter'
+            ]
+        },
+        {
+            id: 'house_cleaning_sterilization',
+            name: 'Equipment Cleaning & Sterilization',
+            order: 4,
+            description: 'Thorough cleaning and sterilization of all production equipment and tanks.',
+            steps: [
+                'Disassemble equipment parts that contact product',
+                'Rinse with purified water',
+                'Clean with approved detergent',
+                'Rinse thoroughly to remove detergent',
+                'Sanitize with approved sterilizing agent',
+                'Final rinse with WFI (Water for Injection) or purified water',
+                'Dry equipment with clean compressed air or lint-free cloth'
+            ],
+            qcChecks: [
+                'Cleaning SOP followed',
+                'Detergent residue test passed',
+                'Visual inspection - equipment clean',
+                'Sterilization parameters documented',
+                'Equipment status label updated',
+                'Cleaning validation log signed'
+            ]
+        },
+        {
+            id: 'tank_preparation',
+            name: 'Tank Preparation',
+            order: 5,
+            description: 'Preparation and verification of compounding tanks for solution manufacturing.',
+            steps: [
+                'Verify tank is clean and dry',
+                'Check tank integrity - no leaks or damage',
+                'Ensure all valves and fittings are secure',
+                'Connect mixing equipment',
+                'Verify temperature control system working',
+                'Place "In Use" status label'
+            ],
+            qcChecks: [
+                'Tank cleaning status verified',
+                'Equipment integrity check passed',
+                'All connections secure',
+                'Calibration status of instruments current',
+                'Tank identified with batch number'
+            ]
+        },
+        {
+            id: 'raw_material_verification',
+            name: 'Raw Material Verification',
+            order: 6,
+            description: 'Verification and staging of all raw materials required for compounding.',
+            steps: [
+                'Retrieve raw materials from approved storage',
+                'Verify material identity against batch record',
+                'Check expiry dates - reject if expired',
+                'Verify QC release status',
+                'Weigh/measure materials as per formula',
+                'Double-check weights by second operator'
+            ],
+            qcChecks: [
+                'Material identity verified',
+                'Expiry dates valid',
+                'QC release labels present',
+                'Weights verified and documented',
+                'Double verification signature obtained',
+                'Material lot numbers recorded'
+            ]
+        },
+        {
+            id: 'compounding',
+            name: 'Compounding',
+            order: 7,
+            description: 'Mixing of raw materials to form the wound cleansing solution according to master formula.',
+            steps: [
+                'Add purified water to tank (specified volume)',
+                'Start mixing at prescribed speed',
+                'Add ingredients in correct sequence',
+                'Mix for specified duration',
+                'Adjust pH if required',
+                'Bring to final volume (Q.S.)',
+                'Continue mixing for homogeneity'
+            ],
+            qcChecks: [
+                'Mixing sequence followed correctly',
+                'Mixing time recorded',
+                'Temperature within specification',
+                'pH within acceptable range',
+                'Volume accurately measured',
+                'Solution appearance acceptable (clear, no particles)'
+            ]
+        },
+        {
+            id: 'quality_checks_compounding',
+            name: 'Quality Checks - End Product of Compounding',
+            order: 8,
+            description: 'In-process quality control testing of compounded solution before filling.',
+            steps: [
+                'Collect sample using aseptic technique',
+                'Measure pH using calibrated meter',
+                'Check specific gravity if required',
+                'Perform appearance test',
+                'Label sample with batch details',
+                'Submit to QC for testing',
+                'Await QC approval before proceeding'
+            ],
+            qcChecks: [
+                'pH within specification range',
+                'Appearance meets criteria',
+                'No visible particulates',
+                'Specific gravity (if applicable) within range',
+                'Odor acceptable',
+                'QC approval obtained before filling'
+            ]
+        },
+        {
+            id: 'filling',
+            name: 'Filling',
+            order: 9,
+            description: 'Volumetric filling of solution into prepared bottles.',
+            steps: [
+                'Set filling machine to correct volume',
+                'Perform fill volume verification with first bottles',
+                'Adjust fill volume if needed',
+                'Begin production filling',
+                'Periodically check fill volume',
+                'Record reject bottles'
+            ],
+            qcChecks: [
+                'Fill volume within specification (±tolerance)',
+                'No spillage or contamination',
+                'Bottles properly seated during fill',
+                'In-process weight checks documented',
+                'Reject bottles documented and segregated'
+            ]
+        },
+        {
+            id: 'bottle_capping',
+            name: 'Bottle Capping',
+            order: 10,
+            description: 'Application of caps to filled bottles ensuring proper seal.',
+            steps: [
+                'Verify cap lot number and specifications',
+                'Load caps into capping machine',
+                'Set torque to specified setting',
+                'Apply caps to filled bottles',
+                'Check cap torque periodically',
+                'Inspect for proper seal'
+            ],
+            qcChecks: [
+                'Cap torque within specification',
+                'Caps properly aligned',
+                'No cross-threading',
+                'Tamper-evident seal intact',
+                'Cap lot number recorded'
+            ]
+        },
+        {
+            id: 'bottle_cleaning_drying',
+            name: 'Bottle Cleaning & Drying',
+            order: 11,
+            description: 'External cleaning of filled and capped bottles before labeling.',
+            steps: [
+                'Wipe bottle exterior with clean cloth',
+                'Remove any solution residue',
+                'Ensure bottles are completely dry',
+                'Inspect for fingerprints or marks',
+                'Stage for labeling'
+            ],
+            qcChecks: [
+                'Bottles externally clean',
+                'No moisture present',
+                'No visible marks or stains',
+                'Bottles properly staged'
+            ]
+        },
+        {
+            id: 'labelling',
+            name: 'Labelling',
+            order: 12,
+            description: 'Application of product labels to bottles.',
+            steps: [
+                'Verify label content matches batch record',
+                'Load labels into labeling machine',
+                'Apply labels to bottles',
+                'Ensure labels are straight and properly adhered',
+                'Inspect for readability'
+            ],
+            qcChecks: [
+                'Correct label version used',
+                'Label placement straight and centered',
+                'No bubbles or wrinkles',
+                'All text readable',
+                'Label adhering properly',
+                'Sample label attached to batch record'
+            ]
+        },
+        {
+            id: 'batch_coding',
+            name: 'Batch Coding',
+            order: 13,
+            description: 'Printing of batch number, manufacturing date, and expiry date on bottles/labels.',
+            steps: [
+                'Set up coding machine with batch details',
+                'Verify code accuracy before production',
+                'Print batch codes on bottles',
+                'Check code clarity and position',
+                'Document coding parameters'
+            ],
+            qcChecks: [
+                'Batch number correct',
+                'Manufacturing date correct',
+                'Expiry date correct',
+                'Code legible and permanent',
+                'Code position consistent',
+                'Verification signature obtained'
+            ]
+        },
+        {
+            id: 'shrink_wrapping',
+            name: 'Shrink Wrapping',
+            order: 14,
+            description: 'Application of shrink wrap seal for tamper evidence.',
+            steps: [
+                'Apply shrink bands to bottle caps',
+                'Pass through heat tunnel',
+                'Verify shrink seal integrity',
+                'Inspect for proper fit'
+            ],
+            qcChecks: [
+                'Shrink wrap fully sealed',
+                'No loose or torn shrink bands',
+                'Tamper-evident perforation intact',
+                'Aesthetic appearance acceptable'
+            ]
+        },
+        {
+            id: 'boxing',
+            name: 'Boxing',
+            order: 15,
+            description: 'Packaging of finished bottles into shipping cartons.',
+            steps: [
+                'Verify carton specifications',
+                'Assemble cartons',
+                'Place correct number of bottles per carton',
+                'Include package inserts if required',
+                'Seal cartons properly'
+            ],
+            qcChecks: [
+                'Correct bottle count per carton',
+                'Carton properly sealed',
+                'Package insert included (if applicable)',
+                'Bottles protected from damage',
+                'Carton quality acceptable'
+            ]
+        },
+        {
+            id: 'box_coding',
+            name: 'Box Coding',
+            order: 16,
+            description: 'Printing of batch information on outer cartons.',
+            steps: [
+                'Print batch number on cartons',
+                'Print manufacturing and expiry dates',
+                'Print quantity per carton',
+                'Verify code accuracy'
+            ],
+            qcChecks: [
+                'Carton codes match bottle codes',
+                'All information legible',
+                'Code position correct',
+                'No smearing or fading'
+            ]
+        },
+        {
+            id: 'line_clearance',
+            name: 'Line Clearance',
+            order: 17,
+            description: 'Complete clearance of production line after batch completion.',
+            steps: [
+                'Remove all finished products from line',
+                'Remove all labels and packaging materials',
+                'Remove all raw materials',
+                'Clear all product residue from equipment',
+                'Collect and reconcile all batch documents',
+                'Update equipment log book'
+            ],
+            qcChecks: [
+                'No materials from batch remaining',
+                'All products accounted for',
+                'Yield reconciliation completed',
+                'Equipment cleared of product',
+                'Line clearance form signed by QA'
+            ]
+        },
+        {
+            id: 'post_production_cleaning',
+            name: 'Post-Production Cleaning',
+            order: 18,
+            description: 'Thorough cleaning of production area and equipment after batch completion.',
+            steps: [
+                'Clean all production equipment',
+                'Wash tanks and transfer lines',
+                'Clean work surfaces',
+                'Mop and sanitize floors',
+                'Dispose of waste properly',
+                'Update cleaning status labels'
+            ],
+            qcChecks: [
+                'Equipment cleaning log completed',
+                'Visual inspection passed',
+                'Cleaning status labels updated',
+                'Waste disposed per procedure',
+                'Area ready for next production'
+            ]
+        },
+        {
+            id: 'warehouse_transfer',
+            name: 'Transfer to Warehouse',
+            order: 19,
+            description: 'Movement of finished goods to warehouse under quarantine pending QC release.',
+            steps: [
+                'Complete final count of finished goods',
+                'Prepare transfer documentation',
+                'Move products to quarantine area',
+                'Update inventory system',
+                'Obtain warehouse acknowledgment'
+            ],
+            qcChecks: [
+                'Quantity matches batch record',
+                'Transfer documentation complete',
+                'Products in quarantine status',
+                'Warehouse receipt obtained',
+                'Inventory system updated',
+                'FIFO (First-In-First-Out) followed'
+            ]
+        }
+    ],
+
     'sterile_dressing_pack': [
         { 
             id: 'gauze_unrolling', 
@@ -224,8 +626,2217 @@ const PRODUCT_SPECIFIC_TASKS = {
                 'FIFO (First-In-First-Out) applied'
             ]
         }
+    ],
+
+    // ==========================================
+    // WOUND-CARE HONEY GAUZE PRODUCTION TASKS
+    // ==========================================
+    'honey_gauze_big': [
+        {
+            id: 'pre_production_sanitation',
+            name: 'Pre-Production Sanitation',
+            order: 1,
+            description: 'Complete sanitation of production area before starting honey gauze manufacturing.',
+            steps: [
+                'Verify production area access is restricted',
+                'Remove all materials from previous batch',
+                'Clean all surfaces with approved disinfectant',
+                'Sanitize cutting tables and work surfaces',
+                'Mop floors with disinfectant solution',
+                'Allow surfaces to dry completely'
+            ],
+            qcChecks: [
+                'Cleaning log signed by operator',
+                'Disinfectant concentration verified',
+                'Visual inspection passed - no residue',
+                'Previous batch materials removed',
+                'Environmental conditions acceptable'
+            ]
+        },
+        {
+            id: 'personnel_gowning',
+            name: 'Personnel Gowning & Hygiene',
+            order: 2,
+            description: 'Proper gowning and personal hygiene procedures for gauze production.',
+            steps: [
+                'Remove jewelry and personal items',
+                'Wash hands thoroughly with antibacterial soap',
+                'Don clean production attire (gown, cap, mask)',
+                'Put on disposable gloves',
+                'Sanitize gloved hands',
+                'Enter production area'
+            ],
+            qcChecks: [
+                'Gowning procedure followed correctly',
+                'No exposed skin or hair',
+                'Gloves intact without tears',
+                'Personnel health declaration verified'
+            ]
+        },
+        {
+            id: 'd_gauze_cutting_sorting',
+            name: 'D-Gauze Cutting & Sorting',
+            order: 3,
+            description: 'Cutting of raw gauze fabric into specified dimensions and sorting by quality.',
+            steps: [
+                'Unroll gauze fabric on clean cutting table',
+                'Measure gauze to specified dimensions',
+                'Cut using clean, sharp cutting tools',
+                'Sort cut pieces by size and quality',
+                'Reject defective pieces',
+                'Stack approved pieces uniformly'
+            ],
+            qcChecks: [
+                'Dimensions within specification',
+                'Cut edges clean without fraying',
+                'No defects (holes, stains, contamination)',
+                'Quantity count accurate',
+                'Rejects documented and segregated'
+            ]
+        },
+        {
+            id: 'packing_in_100s',
+            name: 'Packing in Pieces of 100',
+            order: 4,
+            description: 'Counting and bundling cut gauze pieces into lots of 100.',
+            steps: [
+                'Count gauze pieces accurately',
+                'Bundle in groups of 100',
+                'Secure bundles loosely',
+                'Label each bundle with count'
+            ],
+            qcChecks: [
+                'Count verified - exactly 100 per bundle',
+                'Bundles uniform and neat',
+                'Labels attached correctly',
+                'Total count matches production target'
+            ]
+        },
+        {
+            id: 'temp_storage_blue_bags',
+            name: 'Store Temporarily in Blue Bags',
+            order: 5,
+            description: 'Temporary storage of gauze bundles in designated blue bags before sterilization.',
+            steps: [
+                'Place bundles in clean blue storage bags',
+                'Do not overfill bags',
+                'Seal bags loosely to allow steam penetration',
+                'Label bags with batch information',
+                'Store in designated staging area'
+            ],
+            qcChecks: [
+                'Bags clean and free from damage',
+                'Bags not overfilled',
+                'Labels complete with batch info',
+                'Storage conditions acceptable'
+            ]
+        },
+        {
+            id: 'gauze_sterilization',
+            name: 'Sterilization of D-Gauze',
+            order: 6,
+            description: 'Steam sterilization of packed gauze bundles before honey impregnation.',
+            steps: [
+                'Load gauze bags into autoclave',
+                'Ensure proper spacing for steam circulation',
+                'Run validated sterilization cycle',
+                'Allow cooling period',
+                'Remove sterilized bags carefully'
+            ],
+            qcChecks: [
+                'Sterilization indicators passed',
+                'Cycle parameters achieved (time, temp, pressure)',
+                'Sterilization log completed',
+                'Bags intact after sterilization'
+            ]
+        },
+        {
+            id: 'impregnation_tank_prep',
+            name: 'Impregnation Tank Preparation',
+            order: 7,
+            description: 'Cleaning and preparation of honey impregnation tank.',
+            steps: [
+                'Clean tank thoroughly with purified water',
+                'Sanitize with approved agent',
+                'Rinse and dry completely',
+                'Verify tank integrity',
+                'Place status label'
+            ],
+            qcChecks: [
+                'Tank visually clean',
+                'No residue from previous batch',
+                'Tank integrity verified',
+                'Status label updated'
+            ]
+        },
+        {
+            id: 'tank_loading_gauze',
+            name: 'Tank Loading with Gauze',
+            order: 8,
+            description: 'Loading sterilized gauze into impregnation tank for honey embedding.',
+            steps: [
+                'Transfer sterilized gauze to tank using aseptic technique',
+                'Arrange gauze to ensure even honey distribution',
+                'Do not overload tank',
+                'Record quantity loaded'
+            ],
+            qcChecks: [
+                'Aseptic handling maintained',
+                'Gauze evenly distributed',
+                'Quantity documented',
+                'No contamination observed'
+            ]
+        },
+        {
+            id: 'honey_pasteurization',
+            name: 'Honey Pasteurization',
+            order: 9,
+            description: 'Heat treatment of medical-grade honey to reduce microbial load while preserving therapeutic properties.',
+            steps: [
+                'Verify honey lot number and quality certificate',
+                'Transfer honey to pasteurization vessel',
+                'Heat to specified temperature (typically 70-80°C)',
+                'Maintain temperature for specified duration',
+                'Monitor temperature continuously',
+                'Allow controlled cooling'
+            ],
+            qcChecks: [
+                'Honey lot verified and documented',
+                'Temperature reached and maintained',
+                'Duration met as per specification',
+                'Temperature log completed',
+                'Honey appearance acceptable'
+            ]
+        },
+        {
+            id: 'honey_filtration',
+            name: 'Honey Filtration',
+            order: 10,
+            description: 'Filtration of pasteurized honey to remove particulates.',
+            steps: [
+                'Set up filtration system with correct filter',
+                'Filter pasteurized honey',
+                'Collect filtered honey in clean vessel',
+                'Inspect filtrate clarity'
+            ],
+            qcChecks: [
+                'Filter integrity verified',
+                'Honey clear without particles',
+                'Filtration documented',
+                'Quantity recovered documented'
+            ]
+        },
+        {
+            id: 'gauze_honey_embedding',
+            name: 'Gauze Honey Embedding',
+            order: 11,
+            description: 'Impregnation of gauze with filtered medical honey.',
+            steps: [
+                'Pour filtered honey over gauze in tank',
+                'Ensure complete saturation',
+                'Allow adequate soaking time',
+                'Turn/agitate gauze for even coating',
+                'Remove excess honey'
+            ],
+            qcChecks: [
+                'Gauze fully saturated with honey',
+                'Even distribution achieved',
+                'Soaking time documented',
+                'No dry spots visible'
+            ]
+        },
+        {
+            id: 'embedded_gauze_folding',
+            name: 'Embedded Gauze Folding',
+            order: 12,
+            description: 'Folding of honey-impregnated gauze into specified configuration.',
+            steps: [
+                'Remove gauze from tank carefully',
+                'Allow excess honey to drain',
+                'Fold to specified dimensions',
+                'Handle gently to maintain shape'
+            ],
+            qcChecks: [
+                'Folds uniform and consistent',
+                'Correct dimensions achieved',
+                'No honey dripping or loss',
+                'Gauze integrity maintained'
+            ]
+        },
+        {
+            id: 'embedded_gauze_pouching',
+            name: 'Embedded Gauze Pouching',
+            order: 13,
+            description: 'Placement of folded honey gauze into sterile pouches.',
+            steps: [
+                'Prepare sterile pouches',
+                'Place folded gauze into pouch',
+                'Ensure proper positioning',
+                'Remove air bubbles'
+            ],
+            qcChecks: [
+                'Gauze correctly positioned in pouch',
+                'Pouch material intact',
+                'No contamination',
+                'Air removed from pouch'
+            ]
+        },
+        {
+            id: 'pouch_sealing',
+            name: 'Pouch Sealing',
+            order: 14,
+            description: 'Heat sealing of pouches containing honey gauze.',
+            steps: [
+                'Set sealer to correct temperature',
+                'Seal pouch edges uniformly',
+                'Allow seal to cool',
+                'Inspect seal integrity'
+            ],
+            qcChecks: [
+                'Sealer temperature correct',
+                'Seal complete without gaps',
+                'Seal width within specification',
+                'No burn marks or damage'
+            ]
+        },
+        {
+            id: 'pouch_leakage_checking',
+            name: 'Pouch Leakage Checking',
+            order: 15,
+            description: 'Testing sealed pouches for leaks to ensure product integrity.',
+            steps: [
+                'Visually inspect each sealed pouch',
+                'Gently squeeze pouch to detect leaks',
+                'Perform dye test on sample pouches if required',
+                'Segregate any leaking pouches'
+            ],
+            qcChecks: [
+                'No visible leaks or holes',
+                'Squeeze test passed',
+                'Sample dye test passed (if applicable)',
+                'Rejects documented and disposed'
+            ]
+        },
+        {
+            id: 'pouch_decontamination_drying',
+            name: 'Pouch Surface Decontamination & Drying',
+            order: 16,
+            description: 'External cleaning and drying of sealed pouches.',
+            steps: [
+                'Wipe pouch exterior with clean cloth',
+                'Apply surface disinfectant if required',
+                'Allow to dry completely',
+                'Inspect for cleanliness'
+            ],
+            qcChecks: [
+                'Pouch exterior clean and dry',
+                'No honey residue visible',
+                'No moisture present',
+                'Ready for packaging'
+            ]
+        },
+        {
+            id: 'first_stage_packaging',
+            name: 'First Stage Packaging (in 5s)',
+            order: 17,
+            description: 'Primary packaging of individual pouches into groups of 5.',
+            steps: [
+                'Count 5 pouches accurately',
+                'Place in primary packaging',
+                'Seal primary package',
+                'Label with batch information'
+            ],
+            qcChecks: [
+                'Count verified - exactly 5 per pack',
+                'Package sealed properly',
+                'Label complete and correct',
+                'Package appearance acceptable'
+            ]
+        },
+        {
+            id: 'second_stage_packaging',
+            name: 'Second Stage Packaging (Packet)',
+            order: 18,
+            description: 'Secondary packaging placing primary packs into outer packets.',
+            steps: [
+                'Place primary packs into outer packet',
+                'Include package insert if required',
+                'Seal outer packet',
+                'Apply product label'
+            ],
+            qcChecks: [
+                'Correct number of primary packs',
+                'Package insert included',
+                'Outer packet sealed properly',
+                'Label correct and readable'
+            ]
+        },
+        {
+            id: 'batch_coding',
+            name: 'Batch Coding',
+            order: 19,
+            description: 'Printing batch number, manufacturing and expiry dates on packets.',
+            steps: [
+                'Set up coding machine',
+                'Verify code accuracy',
+                'Print batch codes',
+                'Inspect code quality'
+            ],
+            qcChecks: [
+                'Batch number correct',
+                'Dates correct (manufacturing, expiry)',
+                'Code legible and permanent',
+                'Position consistent'
+            ]
+        },
+        {
+            id: 'packet_boxing_coding',
+            name: 'Packet Boxing & Coding',
+            order: 20,
+            description: 'Packing coded packets into shipping cartons and coding cartons.',
+            steps: [
+                'Count correct number of packets per box',
+                'Pack carefully in carton',
+                'Seal carton',
+                'Apply batch code to carton'
+            ],
+            qcChecks: [
+                'Correct packet count per carton',
+                'Carton sealed properly',
+                'Carton code matches product code',
+                'Carton appearance acceptable'
+            ]
+        },
+        {
+            id: 'line_clearance',
+            name: 'Line Clearance',
+            order: 21,
+            description: 'Complete clearance of production line after batch completion.',
+            steps: [
+                'Remove all finished products',
+                'Remove all labels and packaging materials',
+                'Clear equipment of product residue',
+                'Reconcile all batch documents',
+                'Update equipment logs'
+            ],
+            qcChecks: [
+                'No materials from batch remaining',
+                'Products accounted for',
+                'Yield reconciliation completed',
+                'Line clearance form signed'
+            ]
+        },
+        {
+            id: 'post_production_cleaning',
+            name: 'Post-Production Cleaning',
+            order: 22,
+            description: 'Thorough cleaning of production area and equipment.',
+            steps: [
+                'Clean impregnation tank thoroughly',
+                'Clean all work surfaces',
+                'Sanitize equipment',
+                'Mop and sanitize floors',
+                'Dispose of waste properly'
+            ],
+            qcChecks: [
+                'Equipment cleaning completed',
+                'Visual inspection passed',
+                'Cleaning status labels updated',
+                'Area ready for next production'
+            ]
+        },
+        {
+            id: 'warehouse_transfer',
+            name: 'Transfer to Warehouse',
+            order: 23,
+            description: 'Movement of finished honey gauze to warehouse under quarantine.',
+            steps: [
+                'Complete final count',
+                'Prepare transfer documentation',
+                'Move to quarantine area',
+                'Update inventory system'
+            ],
+            qcChecks: [
+                'Quantity matches batch record',
+                'Transfer documentation complete',
+                'Products in quarantine status',
+                'FIFO followed'
+            ]
+        }
+    ],
+
+    // Small honey gauze uses same tasks as big
+    'honey_gauze_small': null, // Will be set to reference honey_gauze_big
+
+    // ==========================================
+    // HERA WOUND-GEL PRODUCTION TASKS
+    // ==========================================
+    'hera_gel_100g': [
+        {
+            id: 'pre_production_sanitation',
+            name: 'Pre-Production Sanitation',
+            order: 1,
+            description: 'Complete sanitation of gel production area before manufacturing.',
+            steps: [
+                'Verify production area access is restricted',
+                'Remove all materials from previous batch',
+                'Clean all surfaces with approved disinfectant',
+                'Sanitize mixing equipment area',
+                'Mop floors with disinfectant solution',
+                'Allow surfaces to dry completely'
+            ],
+            qcChecks: [
+                'Cleaning log signed by operator',
+                'Disinfectant concentration verified',
+                'Visual inspection passed',
+                'Previous batch materials removed',
+                'Environmental conditions acceptable'
+            ]
+        },
+        {
+            id: 'personnel_gowning',
+            name: 'Personnel Gowning & Hygiene',
+            order: 2,
+            description: 'Proper gowning and personal hygiene for gel production.',
+            steps: [
+                'Remove jewelry and personal items',
+                'Wash hands thoroughly',
+                'Don clean production attire',
+                'Put on disposable gloves',
+                'Sanitize gloved hands'
+            ],
+            qcChecks: [
+                'Gowning procedure followed',
+                'No exposed skin or hair',
+                'Gloves intact',
+                'Personnel health verified'
+            ]
+        },
+        {
+            id: 'raw_material_sorting',
+            name: 'Raw Material Sorting & Verification',
+            order: 3,
+            description: 'Verification and staging of all raw materials required for gel formulation.',
+            steps: [
+                'Retrieve raw materials from approved storage',
+                'Verify material identity against batch record',
+                'Check expiry dates',
+                'Verify QC release status',
+                'Weigh/measure materials per formula',
+                'Double-check by second operator'
+            ],
+            qcChecks: [
+                'Material identity verified',
+                'Expiry dates valid',
+                'QC release labels present',
+                'Weights verified and documented',
+                'Material lot numbers recorded'
+            ]
+        },
+        {
+            id: 'tube_counting_washing',
+            name: 'Tube Counting & Washing',
+            order: 4,
+            description: 'Counting and cleaning of empty tubes for filling.',
+            steps: [
+                'Verify tube specifications match batch record',
+                'Count tubes against production target',
+                'Wash tubes with purified water if required',
+                'Allow tubes to dry completely',
+                'Inspect for defects'
+            ],
+            qcChecks: [
+                'Tube lot number recorded',
+                'Correct tube size verified',
+                'Tubes clean and dry',
+                'No defective tubes',
+                'Quantity matches order'
+            ]
+        },
+        {
+            id: 'tank_preparation',
+            name: 'Tank Preparation (Oil & Water Phase)',
+            order: 5,
+            description: 'Preparation of separate tanks for oil phase and water phase components.',
+            steps: [
+                'Clean and sanitize oil phase tank',
+                'Clean and sanitize water phase tank',
+                'Verify tank integrity',
+                'Connect heating systems',
+                'Place status labels on tanks',
+                'Verify temperature controls working'
+            ],
+            qcChecks: [
+                'Tanks visually clean',
+                'No residue from previous batch',
+                'Temperature controls calibrated',
+                'Status labels updated',
+                'All connections secure'
+            ]
+        },
+        {
+            id: 'phase_heating',
+            name: 'Phase Heating to 80°C',
+            order: 6,
+            description: 'Heating oil and water phases to specified temperature for emulsification.',
+            steps: [
+                'Add oil phase ingredients to oil tank',
+                'Add water phase ingredients to water tank',
+                'Heat both phases to 80°C (±2°C)',
+                'Monitor temperature continuously',
+                'Maintain temperature until ready for mixing'
+            ],
+            qcChecks: [
+                'Oil phase temperature: 80°C (±2°C)',
+                'Water phase temperature: 80°C (±2°C)',
+                'Temperature log completed',
+                'No overheating occurred',
+                'Phases ready for combining'
+            ]
+        },
+        {
+            id: 'filtration_homogenization',
+            name: 'Filtration & Homogenization',
+            order: 7,
+            description: 'Filtration of phases and homogenization to create stable emulsion.',
+            steps: [
+                'Filter heated phases if required',
+                'Slowly add water phase to oil phase',
+                'Start homogenizer at low speed',
+                'Increase to specified RPM',
+                'Homogenize for specified duration',
+                'Monitor temperature during process'
+            ],
+            qcChecks: [
+                'Filter integrity verified',
+                'Phases combined correctly',
+                'Homogenization speed achieved',
+                'Duration met as per specification',
+                'Temperature maintained within range'
+            ]
+        },
+        {
+            id: 'compounding',
+            name: 'Compounding',
+            order: 8,
+            description: 'Final mixing and addition of active ingredients to gel base.',
+            steps: [
+                'Allow emulsion to cool to specified temperature',
+                'Add active ingredients in correct sequence',
+                'Mix thoroughly for uniform distribution',
+                'Check pH and adjust if needed',
+                'Bring to final weight (Q.S.)',
+                'Continue mixing for homogeneity'
+            ],
+            qcChecks: [
+                'Cooling temperature achieved',
+                'Ingredients added in correct order',
+                'Mixing time documented',
+                'pH within specification',
+                'Gel appearance uniform',
+                'No lumps or separation'
+            ]
+        },
+        {
+            id: 'inprocess_qc',
+            name: 'In-Process Quality Check',
+            order: 9,
+            description: 'Quality control testing of compounded gel before filling.',
+            steps: [
+                'Collect sample using aseptic technique',
+                'Test pH using calibrated meter',
+                'Check viscosity',
+                'Perform appearance test',
+                'Submit sample to QC lab'
+            ],
+            qcChecks: [
+                'pH within specification',
+                'Viscosity within range',
+                'Color and odor acceptable',
+                'No visible particles',
+                'QC approval obtained'
+            ]
+        },
+        {
+            id: 'tube_filling',
+            name: 'Tube Filling',
+            order: 10,
+            description: 'Filling prepared tubes with compounded gel.',
+            steps: [
+                'Set up filling machine for tube size',
+                'Verify fill weight with first tubes',
+                'Adjust fill volume if needed',
+                'Begin production filling',
+                'Check fill weight periodically'
+            ],
+            qcChecks: [
+                'Fill weight within specification',
+                'No spillage or contamination',
+                'Tubes properly positioned',
+                'In-process weight checks documented'
+            ]
+        },
+        {
+            id: 'tube_sealing',
+            name: 'Tube Sealing',
+            order: 11,
+            description: 'Heat sealing of filled tubes to close and secure contents.',
+            steps: [
+                'Set sealer to correct temperature',
+                'Position tube in sealing station',
+                'Apply seal with correct pressure',
+                'Verify seal integrity',
+                'Inspect for leaks'
+            ],
+            qcChecks: [
+                'Seal temperature correct',
+                'Seal complete and uniform',
+                'No leaks detected',
+                'Seal appearance acceptable'
+            ]
+        },
+        {
+            id: 'tube_trimming',
+            name: 'Tube Trimming',
+            order: 12,
+            description: 'Trimming excess material from sealed tube ends.',
+            steps: [
+                'Trim sealed end to specified length',
+                'Ensure clean, uniform cut',
+                'Collect trimmed waste',
+                'Inspect trimmed tubes'
+            ],
+            qcChecks: [
+                'Trim length consistent',
+                'Cut clean without rough edges',
+                'No damage to seal',
+                'Waste collected and disposed'
+            ]
+        },
+        {
+            id: 'tube_washing_external',
+            name: 'Tube Washing (External)',
+            order: 13,
+            description: 'External cleaning of filled and sealed tubes.',
+            steps: [
+                'Wipe tube exterior',
+                'Remove any gel residue',
+                'Dry tubes completely',
+                'Inspect for cleanliness'
+            ],
+            qcChecks: [
+                'Tubes externally clean',
+                'No gel residue visible',
+                'Tubes dry',
+                'Ready for packaging'
+            ]
+        },
+        {
+            id: 'packaging_tamper_sticker',
+            name: 'Packaging & Tamper-Proof Sticker',
+            order: 14,
+            description: 'Placing tubes in cartons and applying tamper-evident stickers.',
+            steps: [
+                'Place tube in individual carton',
+                'Include package insert',
+                'Close carton properly',
+                'Apply tamper-proof sticker'
+            ],
+            qcChecks: [
+                'Correct carton used',
+                'Insert included',
+                'Carton properly closed',
+                'Sticker properly applied',
+                'Tamper evidence intact'
+            ]
+        },
+        {
+            id: 'batch_coding',
+            name: 'Batch Coding',
+            order: 15,
+            description: 'Printing batch information on tubes and cartons.',
+            steps: [
+                'Set up coding machine',
+                'Verify code accuracy',
+                'Print codes on tubes/cartons',
+                'Inspect code quality'
+            ],
+            qcChecks: [
+                'Batch number correct',
+                'Manufacturing date correct',
+                'Expiry date correct',
+                'Codes legible and permanent'
+            ]
+        },
+        {
+            id: 'boxing_box_coding',
+            name: 'Boxing & Box Coding',
+            order: 16,
+            description: 'Packing individual cartons into shipping boxes.',
+            steps: [
+                'Count correct number of cartons',
+                'Pack in shipping box',
+                'Seal box properly',
+                'Apply batch code to box'
+            ],
+            qcChecks: [
+                'Correct count per box',
+                'Box sealed properly',
+                'Box code matches product',
+                'Box appearance acceptable'
+            ]
+        },
+        {
+            id: 'line_clearance',
+            name: 'Line Clearance',
+            order: 17,
+            description: 'Complete clearance of production line after batch.',
+            steps: [
+                'Remove all finished products',
+                'Remove all packaging materials',
+                'Clear equipment of product',
+                'Reconcile batch documents',
+                'Update equipment logs'
+            ],
+            qcChecks: [
+                'No materials remaining',
+                'Products accounted for',
+                'Yield reconciliation completed',
+                'Line clearance signed'
+            ]
+        },
+        {
+            id: 'post_production_cleaning',
+            name: 'Post-Production Cleaning',
+            order: 18,
+            description: 'Thorough cleaning of equipment and production area.',
+            steps: [
+                'Clean mixing tanks thoroughly',
+                'Clean filling equipment',
+                'Sanitize work surfaces',
+                'Clean floors',
+                'Dispose of waste properly'
+            ],
+            qcChecks: [
+                'Equipment cleaning completed',
+                'Visual inspection passed',
+                'Status labels updated',
+                'Area ready for next production'
+            ]
+        },
+        {
+            id: 'warehouse_transfer',
+            name: 'Warehouse Transfer',
+            order: 19,
+            description: 'Movement of finished gel products to warehouse.',
+            steps: [
+                'Complete final count',
+                'Prepare transfer documentation',
+                'Move to quarantine area',
+                'Update inventory'
+            ],
+            qcChecks: [
+                'Quantity matches batch record',
+                'Documentation complete',
+                'Quarantine status applied',
+                'FIFO followed'
+            ]
+        }
+    ],
+
+    // 40g gel uses same tasks
+    'hera_gel_40g': null, // Will be set to reference hera_gel_100g
+
+    // ==========================================
+    // NPWT (VAC) FOAM PACK PRODUCTION TASKS
+    // ==========================================
+    'npwt_vac_foam': [
+        {
+            id: 'pre_production_sanitation',
+            name: 'Pre-Production Sanitation',
+            order: 1,
+            description: 'Complete sanitation of foam processing area before manufacturing.',
+            steps: [
+                'Verify production area access is restricted',
+                'Remove all materials from previous batch',
+                'Clean all surfaces with approved disinfectant',
+                'Sanitize cutting table and equipment',
+                'Mop floors with disinfectant solution',
+                'Allow surfaces to dry completely'
+            ],
+            qcChecks: [
+                'Cleaning log signed by operator',
+                'Disinfectant concentration verified',
+                'Visual inspection passed',
+                'Previous batch materials removed',
+                'Environmental conditions acceptable'
+            ]
+        },
+        {
+            id: 'personnel_gowning',
+            name: 'Personnel Gowning & Hygiene',
+            order: 2,
+            description: 'Proper gowning and personal hygiene for foam production.',
+            steps: [
+                'Remove jewelry and personal items',
+                'Wash hands thoroughly',
+                'Don clean production attire',
+                'Put on disposable gloves',
+                'Sanitize gloved hands'
+            ],
+            qcChecks: [
+                'Gowning procedure followed',
+                'No exposed skin or hair',
+                'Gloves intact',
+                'Personnel health verified'
+            ]
+        },
+        {
+            id: 'raw_material_verification',
+            name: 'Raw Material Verification',
+            order: 3,
+            description: 'Verification of foam material specifications and quality.',
+            steps: [
+                'Verify foam material lot number',
+                'Check foam density specification',
+                'Inspect foam for defects',
+                'Check expiry/use-by date',
+                'Verify QC release status'
+            ],
+            qcChecks: [
+                'Material identity verified',
+                'Density within specification',
+                'No visible defects',
+                'Expiry date valid',
+                'QC release label present'
+            ]
+        },
+        {
+            id: 'foam_cutting',
+            name: 'Foam Cutting',
+            order: 4,
+            description: 'Precision cutting of medical-grade foam into specified dimensions.',
+            steps: [
+                'Set up cutting template',
+                'Mark foam for cutting',
+                'Cut using clean, sharp cutting tools',
+                'Verify dimensions of cut pieces',
+                'Stack cut pieces carefully',
+                'Collect and dispose of trim waste'
+            ],
+            qcChecks: [
+                'Dimensions within specification (±tolerance)',
+                'Edges clean and uniform',
+                'No tears or damage',
+                'Correct pore structure visible',
+                'Quantity matches target',
+                'Rejects documented'
+            ]
+        },
+        {
+            id: 'sorting_trimming',
+            name: 'Sorting & Trimming',
+            order: 5,
+            description: 'Quality sorting and precision trimming of cut foam pieces.',
+            steps: [
+                'Inspect each foam piece',
+                'Sort by quality grade',
+                'Trim any irregular edges',
+                'Remove pieces with defects',
+                'Arrange approved pieces for packaging'
+            ],
+            qcChecks: [
+                'All pieces inspected',
+                'Defective pieces removed',
+                'Edges properly trimmed',
+                'Uniform appearance',
+                'Pieces ready for packaging'
+            ]
+        },
+        {
+            id: 'foam_wrapping_sealing',
+            name: 'Foam Wrapping & Sealing',
+            order: 6,
+            description: 'Individual wrapping and sealing of foam pieces in sterile packaging.',
+            steps: [
+                'Prepare sterile packaging material',
+                'Place foam piece in packaging',
+                'Ensure proper positioning',
+                'Remove excess air',
+                'Seal package using heat sealer',
+                'Verify seal integrity'
+            ],
+            qcChecks: [
+                'Correct packaging material used',
+                'Foam correctly positioned',
+                'Seal complete and uniform',
+                'No air pockets',
+                'Package intact without damage'
+            ]
+        },
+        {
+            id: 'batch_coding',
+            name: 'Batch Coding',
+            order: 7,
+            description: 'Printing batch information on sealed foam packages.',
+            steps: [
+                'Set up coding machine',
+                'Verify code accuracy',
+                'Print batch number on packages',
+                'Print manufacturing and expiry dates',
+                'Inspect code quality'
+            ],
+            qcChecks: [
+                'Batch number correct',
+                'Manufacturing date correct',
+                'Expiry date correct',
+                'Codes legible and permanent',
+                'Position consistent'
+            ]
+        },
+        {
+            id: 'sterilization',
+            name: 'Sterilization',
+            order: 8,
+            description: 'Terminal sterilization of packaged foam using validated method.',
+            steps: [
+                'Load packages into sterilizer',
+                'Ensure proper spacing',
+                'Place sterilization indicators',
+                'Run validated sterilization cycle',
+                'Allow cooling period',
+                'Remove sterilized packages'
+            ],
+            qcChecks: [
+                'Sterilization indicators passed',
+                'Cycle parameters achieved',
+                'Time/temperature/pressure logged',
+                'Packages intact after sterilization',
+                'Sterilization batch documented'
+            ]
+        },
+        {
+            id: 'post_sterilization_inspection',
+            name: 'Post-Sterilization Inspection',
+            order: 9,
+            description: 'Inspection of sterilized packages for integrity.',
+            steps: [
+                'Inspect each package visually',
+                'Check seal integrity',
+                'Verify sterilization indicator color change',
+                'Segregate any damaged packages'
+            ],
+            qcChecks: [
+                'Package seals intact',
+                'No visible damage',
+                'Indicators show sterile',
+                'Rejects documented'
+            ]
+        },
+        {
+            id: 'secondary_packaging',
+            name: 'Secondary Packaging',
+            order: 10,
+            description: 'Placing sterilized packs into outer packaging.',
+            steps: [
+                'Count packages per outer carton',
+                'Place in protective outer packaging',
+                'Include package insert if required',
+                'Seal outer package'
+            ],
+            qcChecks: [
+                'Correct count per carton',
+                'Insert included',
+                'Outer package sealed',
+                'Appearance acceptable'
+            ]
+        },
+        {
+            id: 'line_clearance',
+            name: 'Line Clearance',
+            order: 11,
+            description: 'Complete clearance of production line after batch.',
+            steps: [
+                'Remove all finished products',
+                'Remove all packaging materials',
+                'Clear equipment of materials',
+                'Reconcile batch documents'
+            ],
+            qcChecks: [
+                'No materials remaining',
+                'Products accounted for',
+                'Yield reconciliation completed',
+                'Line clearance signed'
+            ]
+        },
+        {
+            id: 'post_production_cleaning',
+            name: 'Post-Production Cleaning',
+            order: 12,
+            description: 'Cleaning of production area after batch completion.',
+            steps: [
+                'Clean cutting equipment',
+                'Clean work surfaces',
+                'Sanitize area',
+                'Dispose of waste properly'
+            ],
+            qcChecks: [
+                'Equipment clean',
+                'Area sanitized',
+                'Status labels updated',
+                'Ready for next production'
+            ]
+        },
+        {
+            id: 'warehouse_transfer',
+            name: 'Transfer to Warehouse',
+            order: 13,
+            description: 'Movement of finished foam packs to warehouse.',
+            steps: [
+                'Complete final count',
+                'Prepare transfer documentation',
+                'Move to quarantine area',
+                'Update inventory'
+            ],
+            qcChecks: [
+                'Quantity matches batch record',
+                'Documentation complete',
+                'Quarantine status applied',
+                'FIFO followed'
+            ]
+        }
+    ],
+
+    // ==========================================
+    // STOPAIN TOPICAL ANALGESIC PRODUCTION TASKS
+    // ==========================================
+    'stopain': [
+        {
+            id: 'pre_production_sanitation',
+            name: 'Pre-Production Sanitation',
+            order: 1,
+            description: 'Complete sanitation of production area before manufacturing.',
+            steps: [
+                'Verify production area access is restricted',
+                'Remove all materials from previous batch',
+                'Clean all surfaces with approved disinfectant',
+                'Sanitize mixing vessels and filling equipment',
+                'Mop floors with disinfectant solution',
+                'Allow surfaces to dry completely'
+            ],
+            qcChecks: [
+                'Cleaning log signed by operator',
+                'Disinfectant concentration verified',
+                'Visual inspection passed',
+                'Previous batch materials removed',
+                'Environmental conditions acceptable'
+            ]
+        },
+        {
+            id: 'personnel_gowning',
+            name: 'Personnel Gowning & Hygiene',
+            order: 2,
+            description: 'Proper gowning and personal hygiene for topical production.',
+            steps: [
+                'Remove jewelry and personal items',
+                'Wash hands thoroughly with antiseptic soap',
+                'Don clean production attire',
+                'Put on hair cover and face mask',
+                'Put on disposable gloves',
+                'Sanitize gloved hands'
+            ],
+            qcChecks: [
+                'Gowning procedure followed',
+                'No exposed skin or hair',
+                'Gloves intact',
+                'Personnel health verified'
+            ]
+        },
+        {
+            id: 'raw_material_verification',
+            name: 'Raw Material Verification',
+            order: 3,
+            description: 'Verification of all raw materials for STOPAIN formulation.',
+            steps: [
+                'Verify active ingredient identity and potency',
+                'Check all excipient specifications',
+                'Verify batch/lot numbers',
+                'Check expiry dates of all materials',
+                'Confirm QC release status',
+                'Weigh materials accurately'
+            ],
+            qcChecks: [
+                'All materials identity confirmed',
+                'Certificates of Analysis reviewed',
+                'Quantities match batch formula',
+                'Expiry dates valid',
+                'QC release labels present'
+            ]
+        },
+        {
+            id: 'base_preparation',
+            name: 'Base Preparation',
+            order: 4,
+            description: 'Preparation of topical base for STOPAIN formulation.',
+            steps: [
+                'Heat water phase to specified temperature',
+                'Heat oil phase to specified temperature',
+                'Monitor temperatures continuously',
+                'Prepare emulsifying agents'
+            ],
+            qcChecks: [
+                'Water phase temperature correct',
+                'Oil phase temperature correct',
+                'Thermometer calibration verified',
+                'Process parameters documented'
+            ]
+        },
+        {
+            id: 'active_incorporation',
+            name: 'Active Ingredient Incorporation',
+            order: 5,
+            description: 'Addition and mixing of active analgesic ingredients.',
+            steps: [
+                'Add active ingredients at specified temperature',
+                'Mix at prescribed speed',
+                'Continue mixing for specified duration',
+                'Monitor for complete dissolution',
+                'Check for homogeneity'
+            ],
+            qcChecks: [
+                'Active added at correct temperature',
+                'Mixing speed verified',
+                'Mixing time documented',
+                'No undissolved particles visible',
+                'Sample taken for testing'
+            ]
+        },
+        {
+            id: 'emulsification',
+            name: 'Emulsification Process',
+            order: 6,
+            description: 'Combining phases to form stable emulsion.',
+            steps: [
+                'Add oil phase to water phase slowly',
+                'Maintain high-speed mixing',
+                'Continue homogenization',
+                'Cool mixture gradually',
+                'Add preservatives and fragrances'
+            ],
+            qcChecks: [
+                'Emulsion stable and uniform',
+                'No phase separation',
+                'Correct viscosity',
+                'pH within specification',
+                'Appearance acceptable'
+            ]
+        },
+        {
+            id: 'bulk_product_testing',
+            name: 'Bulk Product Testing',
+            order: 7,
+            description: 'In-process testing of bulk STOPAIN product.',
+            steps: [
+                'Sample bulk product',
+                'Test pH',
+                'Test viscosity',
+                'Visual inspection for homogeneity',
+                'Document all results'
+            ],
+            qcChecks: [
+                'pH within specification',
+                'Viscosity within limits',
+                'Homogeneous appearance',
+                'No foreign particles',
+                'Results documented'
+            ]
+        },
+        {
+            id: 'container_preparation',
+            name: 'Container Preparation',
+            order: 8,
+            description: 'Preparation of containers for filling.',
+            steps: [
+                'Verify container specifications',
+                'Inspect containers for defects',
+                'Clean and/or sterilize containers',
+                'Stage containers for filling line'
+            ],
+            qcChecks: [
+                'Correct containers selected',
+                'No defective containers',
+                'Containers clean',
+                'Quantity sufficient'
+            ]
+        },
+        {
+            id: 'filling_operation',
+            name: 'Filling Operation',
+            order: 9,
+            description: 'Filling bulk product into containers.',
+            steps: [
+                'Set up filling machine',
+                'Calibrate fill volume',
+                'Perform test fills',
+                'Begin production filling',
+                'Monitor fill weights continuously'
+            ],
+            qcChecks: [
+                'Fill volume within specification',
+                'No spills or contamination',
+                'Containers properly filled',
+                'Weight checks documented'
+            ]
+        },
+        {
+            id: 'capping_sealing',
+            name: 'Capping & Sealing',
+            order: 10,
+            description: 'Applying caps and ensuring proper seal.',
+            steps: [
+                'Apply caps to filled containers',
+                'Ensure proper torque',
+                'Apply tamper-evident seals if required',
+                'Inspect cap application'
+            ],
+            qcChecks: [
+                'Caps properly seated',
+                'Torque within specification',
+                'Tamper-evident seals intact',
+                'No leaking containers'
+            ]
+        },
+        {
+            id: 'labeling',
+            name: 'Labeling',
+            order: 11,
+            description: 'Application of product labels.',
+            steps: [
+                'Verify label identity',
+                'Set up labeling machine',
+                'Apply labels to containers',
+                'Print batch and expiry information'
+            ],
+            qcChecks: [
+                'Correct labels applied',
+                'Labels properly positioned',
+                'Batch number legible',
+                'Expiry date correct'
+            ]
+        },
+        {
+            id: 'secondary_packaging',
+            name: 'Secondary Packaging',
+            order: 12,
+            description: 'Placing products into cartons and outer packaging.',
+            steps: [
+                'Prepare cartons',
+                'Insert package leaflets',
+                'Place containers in cartons',
+                'Seal cartons'
+            ],
+            qcChecks: [
+                'Correct carton used',
+                'Leaflet included',
+                'Carton properly sealed',
+                'Batch info on carton'
+            ]
+        },
+        {
+            id: 'line_clearance',
+            name: 'Line Clearance',
+            order: 13,
+            description: 'Complete clearance of production line after batch.',
+            steps: [
+                'Remove all finished products',
+                'Remove all packaging materials',
+                'Reconcile labels and materials',
+                'Complete batch documentation'
+            ],
+            qcChecks: [
+                'All materials reconciled',
+                'Products accounted for',
+                'Yield within limits',
+                'Line clearance signed'
+            ]
+        },
+        {
+            id: 'post_production_cleaning',
+            name: 'Post-Production Cleaning',
+            order: 14,
+            description: 'Cleaning of all equipment and production area.',
+            steps: [
+                'Clean mixing vessels',
+                'Clean filling equipment',
+                'Clean work surfaces',
+                'Sanitize entire area'
+            ],
+            qcChecks: [
+                'Equipment clean and dry',
+                'No product residue',
+                'Status labels updated',
+                'Ready for next batch'
+            ]
+        },
+        {
+            id: 'warehouse_transfer',
+            name: 'Transfer to Warehouse',
+            order: 15,
+            description: 'Movement of finished products to warehouse.',
+            steps: [
+                'Complete final count',
+                'Prepare transfer documentation',
+                'Move to quarantine storage',
+                'Await QC release'
+            ],
+            qcChecks: [
+                'Quantity verified',
+                'Documentation complete',
+                'Quarantine status applied',
+                'FIFO arrangement'
+            ]
+        }
+    ],
+
+    // ==========================================
+    // DONOR-SITE DRESSING PRODUCTION TASKS
+    // ==========================================
+    'donor_site': [
+        {
+            id: 'pre_production_sanitation',
+            name: 'Pre-Production Sanitation',
+            order: 1,
+            description: 'Complete sanitation of dressing production area.',
+            steps: [
+                'Verify cleanroom access is restricted',
+                'Remove all materials from previous batch',
+                'Clean all surfaces with approved disinfectant',
+                'Sanitize cutting and assembly equipment',
+                'Mop floors with disinfectant solution',
+                'Allow surfaces to dry completely'
+            ],
+            qcChecks: [
+                'Cleaning log signed by operator',
+                'Disinfectant concentration verified',
+                'Visual inspection passed',
+                'Environmental monitoring passed',
+                'Previous batch materials removed'
+            ]
+        },
+        {
+            id: 'personnel_gowning',
+            name: 'Personnel Gowning & Hygiene',
+            order: 2,
+            description: 'Proper gowning for sterile dressing production.',
+            steps: [
+                'Remove jewelry and personal items',
+                'Wash hands thoroughly',
+                'Don sterile gown',
+                'Put on hair cover and face mask',
+                'Put on sterile gloves',
+                'Enter cleanroom through air shower'
+            ],
+            qcChecks: [
+                'Gowning procedure followed',
+                'Sterile technique maintained',
+                'Gloves intact',
+                'Personnel health verified'
+            ]
+        },
+        {
+            id: 'raw_material_verification',
+            name: 'Raw Material Verification',
+            order: 3,
+            description: 'Verification of dressing materials.',
+            steps: [
+                'Verify silicone sheet specifications',
+                'Check non-adherent layer material',
+                'Verify adhesive border material',
+                'Check all lot numbers',
+                'Confirm QC release status'
+            ],
+            qcChecks: [
+                'Materials identity confirmed',
+                'Specifications met',
+                'Lot numbers documented',
+                'Expiry dates valid',
+                'QC release verified'
+            ]
+        },
+        {
+            id: 'silicone_layer_preparation',
+            name: 'Silicone Layer Preparation',
+            order: 4,
+            description: 'Cutting and preparation of silicone contact layer.',
+            steps: [
+                'Set up cutting template for silicone',
+                'Cut silicone sheets to size',
+                'Inspect cut pieces for defects',
+                'Stack for assembly'
+            ],
+            qcChecks: [
+                'Dimensions within specification',
+                'Edges clean and smooth',
+                'No tears or defects',
+                'Correct quantity prepared'
+            ]
+        },
+        {
+            id: 'absorbent_layer_preparation',
+            name: 'Absorbent Layer Preparation',
+            order: 5,
+            description: 'Preparation of absorbent pad layer.',
+            steps: [
+                'Cut absorbent material to size',
+                'Verify absorbency specification',
+                'Inspect for defects',
+                'Stage for assembly'
+            ],
+            qcChecks: [
+                'Dimensions correct',
+                'Absorbency verified',
+                'No contamination',
+                'Quantity matches'
+            ]
+        },
+        {
+            id: 'dressing_assembly',
+            name: 'Dressing Assembly',
+            order: 6,
+            description: 'Assembly of multi-layer donor-site dressing.',
+            steps: [
+                'Position silicone contact layer',
+                'Add absorbent layer',
+                'Apply adhesive border',
+                'Apply release liner',
+                'Inspect assembled dressing'
+            ],
+            qcChecks: [
+                'Layers properly aligned',
+                'Adhesion adequate',
+                'No wrinkles or bubbles',
+                'Release liner intact',
+                'Appearance acceptable'
+            ]
+        },
+        {
+            id: 'individual_packaging',
+            name: 'Individual Packaging',
+            order: 7,
+            description: 'Packaging each dressing in sterile pouch.',
+            steps: [
+                'Place dressing in pouch',
+                'Ensure correct orientation',
+                'Remove excess air',
+                'Heat seal pouch',
+                'Verify seal integrity'
+            ],
+            qcChecks: [
+                'Correct pouch used',
+                'Dressing properly positioned',
+                'Seal complete',
+                'No air pockets',
+                'Package intact'
+            ]
+        },
+        {
+            id: 'batch_coding',
+            name: 'Batch Coding',
+            order: 8,
+            description: 'Printing batch information on packages.',
+            steps: [
+                'Set up coding equipment',
+                'Verify code accuracy',
+                'Print batch number',
+                'Print manufacturing/expiry dates',
+                'Inspect print quality'
+            ],
+            qcChecks: [
+                'Batch number correct',
+                'Dates correct',
+                'Codes legible',
+                'Position consistent'
+            ]
+        },
+        {
+            id: 'sterilization',
+            name: 'Sterilization',
+            order: 9,
+            description: 'Terminal sterilization of packaged dressings.',
+            steps: [
+                'Load packages into sterilizer',
+                'Ensure proper spacing',
+                'Place sterilization indicators',
+                'Run validated cycle',
+                'Allow cooling period'
+            ],
+            qcChecks: [
+                'Indicators passed',
+                'Cycle parameters achieved',
+                'All parameters logged',
+                'Packages intact post-sterilization'
+            ]
+        },
+        {
+            id: 'post_sterilization_inspection',
+            name: 'Post-Sterilization Inspection',
+            order: 10,
+            description: 'Inspection of sterilized packages.',
+            steps: [
+                'Visual inspection of all packages',
+                'Check seal integrity',
+                'Verify indicator color change',
+                'Segregate any rejects'
+            ],
+            qcChecks: [
+                'Seals intact',
+                'No damage',
+                'Indicators show sterile',
+                'Rejects documented'
+            ]
+        },
+        {
+            id: 'secondary_packaging',
+            name: 'Secondary Packaging',
+            order: 11,
+            description: 'Placing in outer cartons.',
+            steps: [
+                'Count packages per carton',
+                'Place in outer carton',
+                'Include package insert',
+                'Seal carton'
+            ],
+            qcChecks: [
+                'Correct count',
+                'Insert included',
+                'Carton sealed',
+                'Labeled correctly'
+            ]
+        },
+        {
+            id: 'line_clearance',
+            name: 'Line Clearance',
+            order: 12,
+            description: 'Complete clearance after batch.',
+            steps: [
+                'Remove all finished products',
+                'Remove all materials',
+                'Reconcile documentation',
+                'Clear equipment'
+            ],
+            qcChecks: [
+                'No materials remaining',
+                'Products accounted for',
+                'Yield reconciled',
+                'Line clearance signed'
+            ]
+        },
+        {
+            id: 'post_production_cleaning',
+            name: 'Post-Production Cleaning',
+            order: 13,
+            description: 'Cleaning of production area.',
+            steps: [
+                'Clean assembly equipment',
+                'Clean work surfaces',
+                'Sanitize area',
+                'Dispose of waste'
+            ],
+            qcChecks: [
+                'Equipment clean',
+                'Area sanitized',
+                'Status updated',
+                'Ready for next batch'
+            ]
+        },
+        {
+            id: 'warehouse_transfer',
+            name: 'Transfer to Warehouse',
+            order: 14,
+            description: 'Movement to warehouse.',
+            steps: [
+                'Complete final count',
+                'Prepare transfer documentation',
+                'Move to quarantine',
+                'Update inventory'
+            ],
+            qcChecks: [
+                'Quantity matches',
+                'Documentation complete',
+                'Quarantine applied',
+                'FIFO followed'
+            ]
+        }
+    ],
+
+    // ==========================================
+    // HERATEX TEXTILE DRESSING PRODUCTION TASKS
+    // ==========================================
+    'heratex': [
+        {
+            id: 'pre_production_sanitation',
+            name: 'Pre-Production Sanitation',
+            order: 1,
+            description: 'Complete sanitation of textile processing area.',
+            steps: [
+                'Verify production area access restricted',
+                'Remove all materials from previous batch',
+                'Clean all surfaces with approved disinfectant',
+                'Sanitize cutting and sewing equipment',
+                'Mop floors with disinfectant solution',
+                'Allow surfaces to dry'
+            ],
+            qcChecks: [
+                'Cleaning log signed',
+                'Disinfectant concentration verified',
+                'Visual inspection passed',
+                'Previous batch cleared',
+                'Environment acceptable'
+            ]
+        },
+        {
+            id: 'personnel_gowning',
+            name: 'Personnel Gowning & Hygiene',
+            order: 2,
+            description: 'Proper gowning for textile dressing production.',
+            steps: [
+                'Remove jewelry and personal items',
+                'Wash hands thoroughly',
+                'Don clean production attire',
+                'Put on hair cover and mask',
+                'Put on disposable gloves',
+                'Sanitize gloved hands'
+            ],
+            qcChecks: [
+                'Gowning procedure followed',
+                'No exposed hair',
+                'Gloves intact',
+                'Personnel health verified'
+            ]
+        },
+        {
+            id: 'raw_material_verification',
+            name: 'Raw Material Verification',
+            order: 3,
+            description: 'Verification of textile materials.',
+            steps: [
+                'Verify textile roll specifications',
+                'Check antimicrobial treatment status',
+                'Verify lot numbers',
+                'Check material certificates',
+                'Confirm QC release'
+            ],
+            qcChecks: [
+                'Material identity confirmed',
+                'Treatment verified',
+                'Lot numbers documented',
+                'Certificates reviewed',
+                'QC release present'
+            ]
+        },
+        {
+            id: 'textile_cutting',
+            name: 'Textile Cutting',
+            order: 4,
+            description: 'Precision cutting of textile material.',
+            steps: [
+                'Set up cutting template',
+                'Unroll textile material',
+                'Cut using rotary cutter or die',
+                'Verify dimensions',
+                'Stack cut pieces',
+                'Collect trim waste'
+            ],
+            qcChecks: [
+                'Dimensions within specification',
+                'Edges clean (no fraying)',
+                'No defects or stains',
+                'Quantity matches target',
+                'Rejects documented'
+            ]
+        },
+        {
+            id: 'edge_finishing',
+            name: 'Edge Finishing',
+            order: 5,
+            description: 'Finishing edges to prevent fraying.',
+            steps: [
+                'Set up edge finishing equipment',
+                'Process each piece',
+                'Inspect finished edges',
+                'Stack for next stage'
+            ],
+            qcChecks: [
+                'Edges properly sealed',
+                'No fraying',
+                'Uniform appearance',
+                'All pieces processed'
+            ]
+        },
+        {
+            id: 'quality_inspection',
+            name: 'Quality Inspection',
+            order: 6,
+            description: 'Inspection of finished textile pieces.',
+            steps: [
+                'Inspect each piece visually',
+                'Check dimensions',
+                'Verify edge quality',
+                'Sort by quality grade',
+                'Remove rejects'
+            ],
+            qcChecks: [
+                '100% inspection completed',
+                'Dimensions verified',
+                'Edge quality acceptable',
+                'Rejects segregated',
+                'Inspection documented'
+            ]
+        },
+        {
+            id: 'folding',
+            name: 'Folding',
+            order: 7,
+            description: 'Folding textile pieces for packaging.',
+            steps: [
+                'Fold according to specification',
+                'Maintain consistent fold pattern',
+                'Stack folded pieces',
+                'Prepare for packaging'
+            ],
+            qcChecks: [
+                'Fold pattern correct',
+                'Consistent appearance',
+                'No wrinkles',
+                'Ready for packaging'
+            ]
+        },
+        {
+            id: 'individual_packaging',
+            name: 'Individual Packaging',
+            order: 8,
+            description: 'Packaging each dressing in sterile pouch.',
+            steps: [
+                'Place folded dressing in pouch',
+                'Ensure correct positioning',
+                'Remove excess air',
+                'Heat seal pouch',
+                'Verify seal'
+            ],
+            qcChecks: [
+                'Correct pouch used',
+                'Dressing positioned correctly',
+                'Seal complete',
+                'Package intact'
+            ]
+        },
+        {
+            id: 'batch_coding',
+            name: 'Batch Coding',
+            order: 9,
+            description: 'Printing batch information.',
+            steps: [
+                'Set up coding equipment',
+                'Verify code accuracy',
+                'Print batch/expiry info',
+                'Inspect print quality'
+            ],
+            qcChecks: [
+                'Batch number correct',
+                'Expiry date correct',
+                'Codes legible',
+                'Position consistent'
+            ]
+        },
+        {
+            id: 'sterilization',
+            name: 'Sterilization',
+            order: 10,
+            description: 'Terminal sterilization of packaged dressings.',
+            steps: [
+                'Load into sterilizer',
+                'Ensure proper spacing',
+                'Place indicators',
+                'Run validated cycle',
+                'Allow cooling'
+            ],
+            qcChecks: [
+                'Indicators passed',
+                'Parameters achieved',
+                'Cycle logged',
+                'Packages intact'
+            ]
+        },
+        {
+            id: 'post_sterilization_inspection',
+            name: 'Post-Sterilization Inspection',
+            order: 11,
+            description: 'Inspection of sterilized packages.',
+            steps: [
+                'Inspect all packages',
+                'Check seal integrity',
+                'Verify indicator change',
+                'Segregate rejects'
+            ],
+            qcChecks: [
+                'Seals intact',
+                'No damage',
+                'Indicators show sterile',
+                'Rejects documented'
+            ]
+        },
+        {
+            id: 'secondary_packaging',
+            name: 'Secondary Packaging',
+            order: 12,
+            description: 'Placing in outer packaging.',
+            steps: [
+                'Count packages per carton',
+                'Place in outer carton',
+                'Include insert if required',
+                'Seal carton'
+            ],
+            qcChecks: [
+                'Correct count',
+                'Insert included',
+                'Carton sealed',
+                'Appearance acceptable'
+            ]
+        },
+        {
+            id: 'line_clearance',
+            name: 'Line Clearance',
+            order: 13,
+            description: 'Complete clearance after batch.',
+            steps: [
+                'Remove all products',
+                'Remove all materials',
+                'Reconcile documents',
+                'Clear equipment'
+            ],
+            qcChecks: [
+                'No materials remaining',
+                'Products accounted for',
+                'Yield reconciled',
+                'Line clearance signed'
+            ]
+        },
+        {
+            id: 'post_production_cleaning',
+            name: 'Post-Production Cleaning',
+            order: 14,
+            description: 'Cleaning of production area.',
+            steps: [
+                'Clean cutting equipment',
+                'Clean work surfaces',
+                'Sanitize area',
+                'Dispose of waste'
+            ],
+            qcChecks: [
+                'Equipment clean',
+                'Area sanitized',
+                'Status updated',
+                'Ready for next batch'
+            ]
+        },
+        {
+            id: 'warehouse_transfer',
+            name: 'Transfer to Warehouse',
+            order: 15,
+            description: 'Movement to warehouse.',
+            steps: [
+                'Complete final count',
+                'Prepare documentation',
+                'Move to quarantine',
+                'Update inventory'
+            ],
+            qcChecks: [
+                'Quantity matches',
+                'Documentation complete',
+                'Quarantine applied',
+                'FIFO followed'
+            ]
+        }
+    ],
+
+    // ==========================================
+    // STERILE GAUZE-ONLY PRODUCTION TASKS
+    // ==========================================
+    'sterile_gauze_only': [
+        {
+            id: 'pre_production_sanitation',
+            name: 'Pre-Production Sanitation',
+            order: 1,
+            description: 'Complete sanitation of gauze processing area.',
+            steps: [
+                'Verify production area access restricted',
+                'Remove all materials from previous batch',
+                'Clean all surfaces with approved disinfectant',
+                'Sanitize cutting and folding equipment',
+                'Mop floors with disinfectant solution',
+                'Allow surfaces to dry'
+            ],
+            qcChecks: [
+                'Cleaning log signed',
+                'Disinfectant concentration verified',
+                'Visual inspection passed',
+                'Previous batch cleared',
+                'Environment acceptable'
+            ]
+        },
+        {
+            id: 'personnel_gowning',
+            name: 'Personnel Gowning & Hygiene',
+            order: 2,
+            description: 'Proper gowning for sterile gauze production.',
+            steps: [
+                'Remove jewelry and personal items',
+                'Wash hands thoroughly',
+                'Don clean production attire',
+                'Put on hair cover and mask',
+                'Put on disposable gloves',
+                'Sanitize gloved hands'
+            ],
+            qcChecks: [
+                'Gowning procedure followed',
+                'No exposed hair',
+                'Gloves intact',
+                'Personnel health verified'
+            ]
+        },
+        {
+            id: 'raw_material_verification',
+            name: 'Raw Material Verification',
+            order: 3,
+            description: 'Verification of gauze material specifications.',
+            steps: [
+                'Verify gauze roll specifications',
+                'Check thread count/ply',
+                'Verify lot number',
+                'Check material certificate',
+                'Confirm QC release status'
+            ],
+            qcChecks: [
+                'Material identity confirmed',
+                'Thread count correct',
+                'Lot number documented',
+                'Certificate reviewed',
+                'QC release present'
+            ]
+        },
+        {
+            id: 'gauze_cutting',
+            name: 'Gauze Cutting',
+            order: 4,
+            description: 'Cutting gauze to specified dimensions.',
+            steps: [
+                'Set up cutting template',
+                'Unroll gauze material',
+                'Cut using rotary cutter',
+                'Verify dimensions of cut pieces',
+                'Stack cut pieces neatly',
+                'Collect trim waste'
+            ],
+            qcChecks: [
+                'Dimensions within specification',
+                'Edges clean (minimal fraying)',
+                'No stains or defects',
+                'Quantity matches target',
+                'Waste disposed properly'
+            ]
+        },
+        {
+            id: 'gauze_folding',
+            name: 'Gauze Folding',
+            order: 5,
+            description: 'Folding gauze pieces to standard configuration.',
+            steps: [
+                'Fold gauze to specified layers',
+                'Maintain consistent fold pattern',
+                'Stack folded gauze',
+                'Prepare for packaging'
+            ],
+            qcChecks: [
+                'Fold pattern correct',
+                'Layer count correct',
+                'Consistent appearance',
+                'No loose threads'
+            ]
+        },
+        {
+            id: 'quality_inspection',
+            name: 'Quality Inspection',
+            order: 6,
+            description: 'Inspection of folded gauze pieces.',
+            steps: [
+                'Inspect each folded gauze',
+                'Check for defects',
+                'Verify fold consistency',
+                'Remove rejects',
+                'Document inspection'
+            ],
+            qcChecks: [
+                'Visual inspection passed',
+                'No defects',
+                'Folds uniform',
+                'Rejects documented'
+            ]
+        },
+        {
+            id: 'packaging',
+            name: 'Packaging',
+            order: 7,
+            description: 'Packaging gauze in sterile pouches.',
+            steps: [
+                'Count gauze per pack',
+                'Place in packaging material',
+                'Ensure correct orientation',
+                'Remove excess air',
+                'Heat seal pouch'
+            ],
+            qcChecks: [
+                'Correct count per pack',
+                'Gauze properly positioned',
+                'Seal complete',
+                'Package intact'
+            ]
+        },
+        {
+            id: 'batch_coding',
+            name: 'Batch Coding',
+            order: 8,
+            description: 'Printing batch information on packages.',
+            steps: [
+                'Set up coding equipment',
+                'Verify code accuracy',
+                'Print batch number',
+                'Print manufacturing/expiry dates',
+                'Inspect print quality'
+            ],
+            qcChecks: [
+                'Batch number correct',
+                'Dates correct',
+                'Codes legible',
+                'Position consistent'
+            ]
+        },
+        {
+            id: 'sterilization',
+            name: 'Sterilization',
+            order: 9,
+            description: 'Terminal sterilization of packaged gauze.',
+            steps: [
+                'Load packages into sterilizer',
+                'Ensure proper spacing',
+                'Place sterilization indicators',
+                'Run validated cycle',
+                'Allow cooling period'
+            ],
+            qcChecks: [
+                'Indicators passed',
+                'Cycle parameters achieved',
+                'All parameters logged',
+                'Packages intact post-sterilization'
+            ]
+        },
+        {
+            id: 'post_sterilization_inspection',
+            name: 'Post-Sterilization Inspection',
+            order: 10,
+            description: 'Inspection of sterilized packages.',
+            steps: [
+                'Visual inspection of all packages',
+                'Check seal integrity',
+                'Verify indicator color change',
+                'Segregate any rejects'
+            ],
+            qcChecks: [
+                'Seals intact',
+                'No damage',
+                'Indicators show sterile',
+                'Rejects documented'
+            ]
+        },
+        {
+            id: 'secondary_packaging',
+            name: 'Secondary Packaging',
+            order: 11,
+            description: 'Placing in outer cartons.',
+            steps: [
+                'Count packages per carton',
+                'Place in outer carton',
+                'Include package insert if required',
+                'Seal carton'
+            ],
+            qcChecks: [
+                'Correct count',
+                'Insert included',
+                'Carton sealed',
+                'Labeled correctly'
+            ]
+        },
+        {
+            id: 'line_clearance',
+            name: 'Line Clearance',
+            order: 12,
+            description: 'Complete clearance after batch.',
+            steps: [
+                'Remove all finished products',
+                'Remove all materials',
+                'Reconcile documentation',
+                'Clear equipment'
+            ],
+            qcChecks: [
+                'No materials remaining',
+                'Products accounted for',
+                'Yield reconciled',
+                'Line clearance signed'
+            ]
+        },
+        {
+            id: 'post_production_cleaning',
+            name: 'Post-Production Cleaning',
+            order: 13,
+            description: 'Cleaning of production area.',
+            steps: [
+                'Clean cutting equipment',
+                'Clean work surfaces',
+                'Sanitize area',
+                'Dispose of waste'
+            ],
+            qcChecks: [
+                'Equipment clean',
+                'Area sanitized',
+                'Status updated',
+                'Ready for next batch'
+            ]
+        },
+        {
+            id: 'warehouse_transfer',
+            name: 'Transfer to Warehouse',
+            order: 14,
+            description: 'Movement to warehouse.',
+            steps: [
+                'Complete final count',
+                'Prepare transfer documentation',
+                'Move to quarantine',
+                'Update inventory'
+            ],
+            qcChecks: [
+                'Quantity matches',
+                'Documentation complete',
+                'Quarantine applied',
+                'FIFO followed'
+            ]
+        }
     ]
 };
+
+// Copy honey_gauze_big tasks to honey_gauze_small (same process)
+PRODUCT_SPECIFIC_TASKS['honey_gauze_small'] = PRODUCT_SPECIFIC_TASKS['honey_gauze_big'];
+
+// Copy hera_gel_100g tasks to hera_gel_40g (same process)
+PRODUCT_SPECIFIC_TASKS['hera_gel_40g'] = PRODUCT_SPECIFIC_TASKS['hera_gel_100g'];
 
 /**
  * Get tasks for a specific product (or default stages)
