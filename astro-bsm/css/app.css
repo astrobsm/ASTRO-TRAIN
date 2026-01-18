@@ -393,15 +393,32 @@ table {
     flex: 1;
     padding: var(--spacing-6);
     overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    max-height: calc(100vh - var(--header-height));
 }
 
 .page {
     display: none;
     animation: fadeIn var(--transition-slow);
+    padding-bottom: var(--spacing-8);
 }
 
 .page.active {
     display: block;
+}
+
+/* Ensure all content is scrollable */
+.scrollable-content {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    max-height: 100%;
+}
+
+/* Full height sections */
+.full-height-section {
+    min-height: calc(100vh - var(--header-height) - var(--spacing-12));
 }
 
 @keyframes fadeIn {
@@ -991,12 +1008,23 @@ table {
 
 .production-body {
     padding: var(--spacing-5);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .production-tasks {
     border: 1px solid var(--gray-200);
     border-radius: var(--radius);
     overflow: hidden;
+    min-width: 500px; /* Ensures horizontal scroll on mobile */
+}
+
+/* Wrapper for horizontal scrolling on mobile */
+.production-tasks-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -5px;
+    padding: 0 5px;
 }
 
 .task-row {
@@ -1665,6 +1693,105 @@ textarea.form-control {
     .toast {
         min-width: auto;
     }
+    
+    /* Improved mobile production cards */
+    .production-card {
+        margin-bottom: var(--spacing-4);
+    }
+    
+    .production-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-3);
+    }
+    
+    .production-meta {
+        flex-direction: column;
+        gap: var(--spacing-1);
+    }
+    
+    .production-footer {
+        flex-direction: column;
+        gap: var(--spacing-3);
+    }
+    
+    .production-footer > div:last-child {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--spacing-2);
+    }
+    
+    .production-footer .btn {
+        flex: 1;
+        min-width: 80px;
+    }
+    
+    /* Mobile task rows */
+    .task-row {
+        flex-direction: column;
+        padding: var(--spacing-3);
+        gap: var(--spacing-2);
+    }
+    
+    .task-row > div {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+    }
+    
+    .task-row > div::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--gray-600);
+    }
+    
+    /* Mobile roster */
+    .roster-day {
+        margin-bottom: var(--spacing-4);
+    }
+    
+    .assignment-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    /* Modal improvements */
+    .modal {
+        margin: var(--spacing-2);
+        max-height: 90vh;
+        width: calc(100% - var(--spacing-4));
+    }
+    
+    .modal-body {
+        max-height: 60vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Form improvements */
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-3);
+    }
+    
+    .form-control {
+        font-size: 16px; /* Prevent iOS zoom on focus */
+    }
+    
+    /* Header controls wrap */
+    .header-controls {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+    
+    .header-controls .btn {
+        flex: 1;
+        min-width: 120px;
+    }
+    
+    .header-controls select {
+        flex: 1;
+    }
 }
 
 /* Print Styles */
@@ -1685,6 +1812,8 @@ textarea.form-control {
     
     .page-container {
         padding: 0;
+        max-height: none;
+        overflow: visible;
     }
     
     .page {
@@ -1699,5 +1828,173 @@ textarea.form-control {
     .production-card {
         box-shadow: none;
         border: 1px solid var(--gray-300);
+    }
+    
+    .production-tasks {
+        min-width: auto;
+    }
+}
+
+/* ===========================================
+   Additional Mobile Improvements
+   =========================================== */
+
+/* Ensure smooth scrolling everywhere */
+* {
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Better touch targets for mobile */
+@media (max-width: 768px) {
+    .btn {
+        min-height: 44px;
+        padding: var(--spacing-3) var(--spacing-4);
+    }
+    
+    .btn-sm {
+        min-height: 36px;
+        padding: var(--spacing-2) var(--spacing-3);
+    }
+    
+    input[type="checkbox"] {
+        min-width: 24px;
+        min-height: 24px;
+    }
+    
+    select.form-control {
+        padding: var(--spacing-3);
+    }
+    
+    /* Better roster display */
+    .roster-days {
+        gap: var(--spacing-3);
+    }
+    
+    .roster-day {
+        min-width: 280px;
+    }
+    
+    .day-assignments {
+        min-height: 150px;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    /* Assignment items mobile friendly */
+    .assignment-item {
+        padding: var(--spacing-4);
+    }
+    
+    .assignment-status {
+        flex-wrap: wrap;
+        gap: var(--spacing-2);
+    }
+    
+    /* Production list mobile */
+    .production-list {
+        gap: var(--spacing-4);
+    }
+    
+    .production-body {
+        padding: var(--spacing-3);
+    }
+    
+    /* Hide task header on mobile, show inline labels */
+    .task-header {
+        display: none !important;
+    }
+    
+    .task-row:not(.task-header) {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-2);
+        padding: var(--spacing-4);
+        position: relative;
+    }
+    
+    .task-row .task-order {
+        position: absolute;
+        top: var(--spacing-3);
+        left: var(--spacing-3);
+        background: var(--primary-500);
+        color: white;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: var(--font-size-sm);
+    }
+    
+    .task-row .task-name {
+        margin-left: 35px;
+        white-space: normal;
+        font-size: var(--font-size-base);
+    }
+    
+    .task-row .task-staff {
+        margin-left: 35px;
+    }
+    
+    .task-row > div:not(.task-order):not(.task-name):not(.task-staff) {
+        margin-left: 35px;
+    }
+    
+    .task-row .task-checkbox {
+        position: absolute;
+        top: var(--spacing-3);
+        right: var(--spacing-3);
+    }
+    
+    /* Status badges inline */
+    .task-row .status-badge {
+        display: inline-flex;
+        margin-right: auto;
+    }
+}
+
+/* Production linked assignment highlight */
+.assignment-item.production-linked {
+    background: linear-gradient(to right, #E8F5E9, white);
+}
+
+/* Scrollable modals */
+.modal-body {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Scrollable containers */
+.scrollable-x {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.scrollable-y {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure content visibility */
+.content-wrapper {
+    min-height: 0;
+    overflow: auto;
+}
+
+/* No content obscuring */
+.page {
+    position: relative;
+    z-index: 1;
+}
+
+/* Safe area for notched devices */
+@supports (padding: env(safe-area-inset-bottom)) {
+    .page-container {
+        padding-bottom: calc(var(--spacing-8) + env(safe-area-inset-bottom));
+    }
+    
+    .modal {
+        padding-bottom: env(safe-area-inset-bottom);
     }
 }

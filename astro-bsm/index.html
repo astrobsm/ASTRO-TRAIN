@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="theme-color" content="#1a365d">
     <meta name="description" content="ASTRO-BSM Factory Operations & Duty Roster Management System">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -260,9 +260,12 @@
                             <button class="btn btn-secondary" onclick="generateWeeklyRoster()">
                                 <i class="fas fa-magic"></i> Auto-Generate
                             </button>
+                            <button class="btn btn-success" onclick="exportRosterToPDF()">
+                                <i class="fas fa-file-pdf"></i> Export PDF
+                            </button>
                         </div>
                     </div>
-                    <div class="roster-view">
+                    <div class="roster-view scrollable-content">
                         <div class="roster-days">
                             <div class="roster-day" data-day="monday">
                                 <div class="day-header">

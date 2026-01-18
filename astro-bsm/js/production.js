@@ -3328,9 +3328,26 @@ async function saveProduction(event) {
             productionData.id = parseInt(editId);
             await DB.update(DB.STORES.PRODUCTION, productionData);
             Utils.showToast('success', 'Success', 'Production schedule updated');
+            
+            // Update roster assignments for this production
+            if (window.Roster && window.Roster.generateFromProduction) {
+                const rosterResult = await window.Roster.generateFromProduction(productionData);
+                if (rosterResult.assignmentsCreated > 0) {
+                    Utils.showToast('info', 'Roster Updated', rosterResult.message);
+                }
+            }
         } else {
-            await DB.add(DB.STORES.PRODUCTION, productionData);
+            const newId = await DB.add(DB.STORES.PRODUCTION, productionData);
+            productionData.id = newId;
             Utils.showToast('success', 'Success', 'Production scheduled successfully');
+            
+            // Auto-generate roster entries from production schedule
+            if (window.Roster && window.Roster.generateFromProduction) {
+                const rosterResult = await window.Roster.generateFromProduction(productionData);
+                if (rosterResult.success && rosterResult.assignmentsCreated > 0) {
+                    Utils.showToast('info', 'Roster Generated', `${rosterResult.assignmentsCreated} duty assignments created from production tasks`);
+                }
+            }
         }
         
         closeModal();

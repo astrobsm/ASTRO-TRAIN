@@ -94,15 +94,28 @@ function renderDayAssignments(day, date, weekRoster) {
     
     container.innerHTML = dayAssignments.map(assignment => {
         const staffName = Staff.getName(assignment.staffId);
-        const dutyName = Duties.getName(assignment.dutyId);
-        const duty = Duties.getById(assignment.dutyId);
+        
+        // Handle both regular duties and production-linked tasks
+        let dutyName, duty, isProductionTask;
+        if (assignment.isProductionTask) {
+            dutyName = assignment.dutyName || 'Production Task';
+            duty = null;
+            isProductionTask = true;
+        } else {
+            dutyName = Duties.getName(assignment.dutyId);
+            duty = Duties.getById(assignment.dutyId);
+            isProductionTask = false;
+        }
         
         const statusClass = assignment.status === 'completed' ? 'status-completed' : 
                           assignment.status === 'in-progress' ? 'status-pending' : '';
         
         return `
-            <div class="assignment-item" data-id="${assignment.id}">
-                <div class="assignment-duty">${Utils.escapeHtml(dutyName)}</div>
+            <div class="assignment-item ${isProductionTask ? 'production-linked' : ''}" data-id="${assignment.id}" style="${isProductionTask ? 'border-left: 3px solid var(--success-500);' : ''}">
+                <div class="assignment-duty">
+                    ${isProductionTask ? '<i class="fas fa-cogs" style="color: var(--success-500); margin-right: 4px;" title="Production Task"></i>' : ''}
+                    ${Utils.escapeHtml(dutyName)}
+                </div>
                 <div class="assignment-staff">
                     <i class="fas fa-user"></i> ${Utils.escapeHtml(staffName)}
                 </div>
@@ -110,8 +123,17 @@ function renderDayAssignments(day, date, weekRoster) {
                     <div class="assignment-time">
                         <i class="fas fa-clock"></i> ${Utils.formatTime(duty.startTime)} - ${Utils.formatTime(duty.endTime)}
                     </div>
+                ` : isProductionTask ? `
+                    <div class="assignment-time" style="color: var(--success-500);">
+                        <i class="fas fa-industry"></i> Production Task
+                    </div>
                 ` : ''}
-                <div class="assignment-status">
+                ${assignment.notes ? `
+                    <div class="assignment-notes" style="font-size: 11px; color: var(--gray-500); margin-top: 4px;">
+                        <i class="fas fa-sticky-note"></i> ${Utils.escapeHtml(assignment.notes.substring(0, 50))}${assignment.notes.length > 50 ? '...' : ''}
+                    </div>
+                ` : ''}
+                <div class="assignment-status" style="margin-top: 8px;">
                     ${assignment.status !== 'pending' ? `
                         <span class="status-badge ${statusClass}">${Utils.capitalize(assignment.status)}</span>
                     ` : ''}
@@ -498,5 +520,327 @@ window.Roster = {
     getTodaySchedule,
     updatePendingCount: updatePendingTasksCount,
     getCurrentWeek: () => currentWeek,
-    cache: () => rosterCache
+    cache: () => rosterCache,
+    generateFromProduction: generateRosterFromProduction
 };
+
+/**
+ * Export roster to PDF for WhatsApp sharing
+ */
+function exportRosterToPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    const weekDates = Utils.getWeekDates(currentWeek);
+    const weekRoster = rosterCache.filter(r => r.weekNumber === currentWeek);
+    
+    if (weekRoster.length === 0) {
+        Utils.showToast('warning', 'No Data', 'No roster assignments for this week to export');
+        return;
+    }
+    
+    // Header with company branding
+    doc.setFillColor(26, 54, 93);
+    doc.rect(0, 0, 210, 45, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(28);
+    doc.setFont('helvetica', 'bold');
+    doc.text('ASTRO-BSM', 105, 18, { align: 'center' });
+    
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Weekly Duty Roster', 105, 28, { align: 'center' });
+    
+    doc.setFontSize(12);
+    doc.text(`Week ${currentWeek.split('-W')[1]} of ${currentWeek.split('-W')[0]}`, 105, 38, { align: 'center' });
+    
+    let yPos = 55;
+    
+    // Week summary box
+    doc.setTextColor(0, 0, 0);
+    doc.setFillColor(240, 248, 255);
+    doc.roundedRect(15, yPos, 180, 25, 3, 3, 'F');
+    doc.setDrawColor(26, 54, 93);
+    doc.roundedRect(15, yPos, 180, 25, 3, 3, 'S');
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('📅 Week Overview', 20, yPos + 8);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Monday: ${Utils.formatDateDisplay(weekDates.monday)}`, 20, yPos + 16);
+    doc.text(`Wednesday: ${Utils.formatDateDisplay(weekDates.wednesday)}`, 80, yPos + 16);
+    doc.text(`Saturday: ${Utils.formatDateDisplay(weekDates.saturday)}`, 140, yPos + 16);
+    doc.text(`Total Assignments: ${weekRoster.length}`, 20, yPos + 22);
+    
+    yPos += 35;
+    
+    // Working days
+    const workingDays = [
+        { key: 'monday', name: 'MONDAY', date: weekDates.monday },
+        { key: 'wednesday', name: 'WEDNESDAY', date: weekDates.wednesday },
+        { key: 'saturday', name: 'SATURDAY', date: weekDates.saturday }
+    ];
+    
+    workingDays.forEach((day, dayIndex) => {
+        const dateStr = Utils.formatDate(day.date);
+        const dayAssignments = weekRoster.filter(r => r.date === dateStr);
+        
+        // Check if we need a new page
+        if (yPos > 240) {
+            doc.addPage();
+            yPos = 20;
+        }
+        
+        // Day header
+        doc.setFillColor(46, 125, 50);
+        doc.rect(15, yPos, 180, 12, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${day.name} - ${Utils.formatDateDisplay(day.date)}`, 20, yPos + 8);
+        doc.text(`${dayAssignments.length} assignments`, 180, yPos + 8, { align: 'right' });
+        
+        yPos += 18;
+        doc.setTextColor(0, 0, 0);
+        
+        if (dayAssignments.length === 0) {
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'italic');
+            doc.setTextColor(128, 128, 128);
+            doc.text('No assignments scheduled for this day', 20, yPos);
+            yPos += 12;
+        } else {
+            // Table header
+            doc.setFillColor(248, 249, 250);
+            doc.rect(15, yPos - 3, 180, 10, 'F');
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(60, 60, 60);
+            doc.text('#', 18, yPos + 4);
+            doc.text('Staff Member', 28, yPos + 4);
+            doc.text('Duty / Task', 80, yPos + 4);
+            doc.text('Time', 140, yPos + 4);
+            doc.text('Status', 170, yPos + 4);
+            
+            yPos += 12;
+            
+            // Table rows
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(0, 0, 0);
+            
+            dayAssignments.forEach((assignment, idx) => {
+                if (yPos > 270) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+                
+                const staffName = Staff.getName(assignment.staffId);
+                const dutyName = Duties.getName(assignment.dutyId);
+                const duty = Duties.getById(assignment.dutyId);
+                const timeStr = duty ? `${Utils.formatTime(duty.startTime)} - ${Utils.formatTime(duty.endTime)}` : '-';
+                const statusIcon = assignment.status === 'completed' ? '✅' : '⬜';
+                
+                // Alternating row colors
+                if (idx % 2 === 0) {
+                    doc.setFillColor(255, 255, 255);
+                } else {
+                    doc.setFillColor(250, 250, 250);
+                }
+                doc.rect(15, yPos - 4, 180, 10, 'F');
+                
+                doc.setFontSize(9);
+                doc.text(`${idx + 1}.`, 18, yPos + 2);
+                doc.setFont('helvetica', 'bold');
+                doc.text(staffName.substring(0, 25), 28, yPos + 2);
+                doc.setFont('helvetica', 'normal');
+                doc.text(dutyName.substring(0, 30), 80, yPos + 2);
+                doc.setFontSize(8);
+                doc.text(timeStr, 140, yPos + 2);
+                doc.text(statusIcon, 175, yPos + 2);
+                
+                yPos += 8;
+            });
+        }
+        
+        yPos += 10;
+    });
+    
+    // Production-linked roster indicator
+    const productionLinked = weekRoster.filter(r => r.linkedProductionId);
+    if (productionLinked.length > 0) {
+        if (yPos > 250) {
+            doc.addPage();
+            yPos = 20;
+        }
+        
+        doc.setFillColor(255, 243, 205);
+        doc.roundedRect(15, yPos, 180, 15, 3, 3, 'F');
+        doc.setFontSize(9);
+        doc.setTextColor(133, 100, 4);
+        doc.text(`📋 ${productionLinked.length} assignments are linked to production schedules`, 20, yPos + 9);
+        yPos += 20;
+    }
+    
+    // Footer on all pages
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(128, 128, 128);
+        doc.line(15, 280, 195, 280);
+        doc.text('ASTRO-BSM Factory Operations | Duty Roster Management', 105, 285, { align: 'center' });
+        doc.text(`Generated: ${new Date().toLocaleString()}`, 15, 290);
+        doc.text(`Page ${i} of ${pageCount}`, 195, 290, { align: 'right' });
+    }
+    
+    // Save PDF
+    const fileName = `Duty_Roster_Week${currentWeek.split('-W')[1]}_${currentWeek.split('-W')[0]}.pdf`;
+    doc.save(fileName);
+    
+    Utils.showToast('success', 'PDF Ready', 'Duty roster exported successfully!');
+    
+    // Show share modal
+    setTimeout(() => {
+        showRosterShareModal(fileName);
+    }, 500);
+}
+
+/**
+ * Show roster share modal
+ */
+function showRosterShareModal(fileName) {
+    const content = `
+        <div style="text-align: center; padding: 20px;">
+            <i class="fab fa-whatsapp" style="font-size: 64px; color: #25D366; margin-bottom: 20px;"></i>
+            <h3 style="color: var(--gray-700); margin-bottom: 16px;">Duty Roster PDF Ready!</h3>
+            <p style="color: var(--gray-600); margin-bottom: 20px;">
+                Your roster has been saved as:<br>
+                <strong style="color: var(--primary-600);">${fileName}</strong>
+            </p>
+            <div style="background: var(--gray-100); border-radius: 8px; padding: 16px; text-align: left;">
+                <h4 style="color: var(--gray-700); margin-bottom: 12px;"><i class="fas fa-share-alt"></i> Share Options:</h4>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 15px;">
+                    <button class="btn btn-success" onclick="window.open('https://wa.me/?text=Check%20out%20the%20duty%20roster%20for%20this%20week!', '_blank'); closeModal();">
+                        <i class="fab fa-whatsapp"></i> Open WhatsApp
+                    </button>
+                </div>
+            </div>
+            <div style="margin-top: 20px; padding: 12px; background: #E3F2FD; border-radius: 8px;">
+                <p style="color: #1565C0; margin: 0; font-size: 13px;">
+                    <i class="fas fa-info-circle"></i> The PDF is in your Downloads folder. 
+                    Attach it when sharing on WhatsApp.
+                </p>
+            </div>
+        </div>
+    `;
+    
+    const footer = `
+        <button class="btn btn-primary" onclick="closeModal()">
+            <i class="fas fa-check"></i> Done
+        </button>
+    `;
+    
+    Utils.showModal('Share Duty Roster', content, footer);
+}
+
+/**
+ * Generate roster entries from a production schedule
+ * Called when production is scheduled to auto-create duty assignments
+ */
+async function generateRosterFromProduction(production) {
+    if (!production || !production.tasks || !production.assignedStaff) {
+        return { success: false, message: 'Invalid production data' };
+    }
+    
+    const productionDate = production.date;
+    const weekNumber = Utils.getWeekNumber(new Date(productionDate));
+    let assignmentsCreated = 0;
+    let duplicatesSkipped = 0;
+    
+    try {
+        // Get existing roster for this week
+        const existingRoster = await DB.getAll(DB.STORES.ROSTER);
+        const weekRoster = existingRoster.filter(r => r.weekNumber === weekNumber);
+        
+        // Create duty assignments from production tasks
+        for (const task of production.tasks) {
+            if (!task.staffId) continue; // Skip unassigned tasks
+            
+            // Check for duplicates - same staff, same day, same task linked to same production
+            const isDuplicate = weekRoster.some(r => 
+                r.date === productionDate && 
+                r.staffId === task.staffId &&
+                r.linkedProductionId === production.id &&
+                r.linkedTaskId === task.id
+            );
+            
+            if (isDuplicate) {
+                duplicatesSkipped++;
+                continue;
+            }
+            
+            // Create roster entry
+            const rosterEntry = {
+                date: productionDate,
+                weekNumber: weekNumber,
+                staffId: task.staffId,
+                dutyId: null, // Production task, not a predefined duty
+                dutyName: task.name, // Store task name directly
+                linkedProductionId: production.id,
+                linkedTaskId: task.id,
+                productName: production.productId,
+                notes: `Production Task: ${task.name} (Batch: ${production.batchNumber || 'N/A'})`,
+                status: 'pending',
+                isProductionTask: true
+            };
+            
+            await DB.add(DB.STORES.ROSTER, rosterEntry);
+            assignmentsCreated++;
+        }
+        
+        // Reload roster cache
+        rosterCache = await DB.getAll(DB.STORES.ROSTER);
+        
+        return {
+            success: true,
+            assignmentsCreated,
+            duplicatesSkipped,
+            message: `Created ${assignmentsCreated} duty assignments${duplicatesSkipped > 0 ? `, skipped ${duplicatesSkipped} duplicates` : ''}`
+        };
+    } catch (error) {
+        console.error('Error generating roster from production:', error);
+        return { success: false, message: 'Failed to generate roster entries' };
+    }
+}
+
+/**
+ * Sync roster with production schedules - ensures no mismatches
+ */
+async function syncRosterWithProduction() {
+    try {
+        const productions = await DB.getAll(DB.STORES.PRODUCTION);
+        const activeProductions = productions.filter(p => p.status !== 'completed');
+        
+        let totalCreated = 0;
+        let totalSkipped = 0;
+        
+        for (const production of activeProductions) {
+            const result = await generateRosterFromProduction(production);
+            if (result.success) {
+                totalCreated += result.assignmentsCreated;
+                totalSkipped += result.duplicatesSkipped;
+            }
+        }
+        
+        if (totalCreated > 0) {
+            Utils.showToast('success', 'Roster Synced', `Created ${totalCreated} new assignments from production schedules`);
+        }
+        
+        await loadRoster();
+    } catch (error) {
+        console.error('Error syncing roster:', error);
+        Utils.showToast('error', 'Sync Error', 'Failed to sync roster with production');
+    }
+}
