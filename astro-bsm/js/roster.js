@@ -75,6 +75,7 @@ function loadRosterForWeek() {
 
 /**
  * Render assignments for a specific day
+ * Groups production tasks by product for clarity
  */
 function renderDayAssignments(day, date, weekRoster) {
     const container = document.getElementById(`${day}Assignments`);
@@ -92,63 +93,237 @@ function renderDayAssignments(day, date, weekRoster) {
         return;
     }
     
-    container.innerHTML = dayAssignments.map(assignment => {
-        const staffName = Staff.getName(assignment.staffId);
-        
-        // Handle both regular duties and production-linked tasks
-        let dutyName, duty, isProductionTask;
-        if (assignment.isProductionTask) {
-            dutyName = assignment.dutyName || 'Production Task';
-            duty = null;
-            isProductionTask = true;
-        } else {
-            dutyName = Duties.getName(assignment.dutyId);
-            duty = Duties.getById(assignment.dutyId);
-            isProductionTask = false;
+    // Separate production tasks and regular duties
+    const productionTasks = dayAssignments.filter(a => a.isProductionTask);
+    const regularDuties = dayAssignments.filter(a => !a.isProductionTask);
+    
+    // Group production tasks by product
+    const productGroups = {};
+    productionTasks.forEach(task => {
+        const productKey = task.productId || 'unknown';
+        if (!productGroups[productKey]) {
+            productGroups[productKey] = {
+                productName: task.productName || productKey,
+                batchNumber: task.batchNumber || '',
+                startTime: task.productionStartTime || '',
+                endTime: task.productionEndTime || '',
+                targetQuantity: task.targetQuantity || 0,
+                tasks: []
+            };
         }
+        productGroups[productKey].tasks.push(task);
+    });
+    
+    // Sort tasks within each product group by order
+    Object.keys(productGroups).forEach(key => {
+        productGroups[key].tasks.sort((a, b) => (a.taskOrder || 0) - (b.taskOrder || 0));
+    });
+    
+    let html = '';
+    
+    // Render production tasks grouped by product
+    Object.keys(productGroups).forEach(productKey => {
+        const group = productGroups[productKey];
         
-        const statusClass = assignment.status === 'completed' ? 'status-completed' : 
-                          assignment.status === 'in-progress' ? 'status-pending' : '';
+        html += `
+            <div class="product-group" style="margin-bottom: 16px; border: 2px solid var(--success-500); border-radius: 8px; overflow: hidden;">
+                <div class="product-group-header" style="background: linear-gradient(135deg, var(--success-500), #2E7D32); color: white; padding: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                        <div>
+                            <i class="fas fa-industry"></i>
+                            <strong style="font-size: 14px;">${Utils.escapeHtml(group.productName)}</strong>
+                        </div>
+                        <div style="font-size: 11px; opacity: 0.9;">
+                            ${group.batchNumber ? `Batch: ${Utils.escapeHtml(group.batchNumber)} | ` : ''}
+                            ${group.startTime && group.endTime ? `${Utils.formatTime(group.startTime)} - ${Utils.formatTime(group.endTime)}` : ''}
+                        </div>
+                    </div>
+                    <div style="font-size: 11px; margin-top: 4px;">
+                        <i class="fas fa-tasks"></i> ${group.tasks.length} tasks | 
+                        <i class="fas fa-users"></i> ${new Set(group.tasks.map(t => t.staffId)).size} staff assigned
+                    </div>
+                </div>
+                <div class="product-group-tasks" style="padding: 8px;">
+        `;
         
-        return `
-            <div class="assignment-item ${isProductionTask ? 'production-linked' : ''}" data-id="${assignment.id}" style="${isProductionTask ? 'border-left: 3px solid var(--success-500);' : ''}">
-                <div class="assignment-duty">
-                    ${isProductionTask ? '<i class="fas fa-cogs" style="color: var(--success-500); margin-right: 4px;" title="Production Task"></i>' : ''}
-                    ${Utils.escapeHtml(dutyName)}
+        group.tasks.forEach(assignment => {
+            const staffName = Staff.getName(assignment.staffId);
+            const statusClass = assignment.status === 'completed' ? 'status-completed' : 
+                              assignment.status === 'in-progress' ? 'status-pending' : '';
+            
+            html += `
+                <div class="assignment-item production-task-item" data-id="${assignment.id}" style="border-left: 3px solid var(--success-500); margin-bottom: 8px; padding: 10px; background: #F1F8E9;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div style="flex: 1;">
+                            <div class="assignment-duty" style="font-weight: 600; color: var(--gray-800);">
+                                <span style="background: var(--success-500); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-right: 6px;">${assignment.taskOrder || '-'}</span>
+                                ${Utils.escapeHtml(assignment.dutyName)}
+                            </div>
+                            <div class="assignment-staff" style="font-size: 13px; color: var(--gray-600); margin-top: 4px;">
+                                <i class="fas fa-user" style="color: var(--primary-500);"></i> ${Utils.escapeHtml(staffName)}
+                            </div>
+                            ${assignment.taskDescription ? `
+                                <div style="font-size: 11px; color: var(--gray-500); margin-top: 4px; font-style: italic;">
+                                    ${Utils.escapeHtml(assignment.taskDescription.substring(0, 80))}${assignment.taskDescription.length > 80 ? '...' : ''}
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="assignment-status" style="display: flex; flex-direction: column; gap: 4px; align-items: flex-end;">
+                            ${assignment.status !== 'pending' ? `
+                                <span class="status-badge ${statusClass}" style="font-size: 10px;">${Utils.capitalize(assignment.status)}</span>
+                            ` : ''}
+                            <div style="display: flex; gap: 4px;">
+                                ${assignment.status !== 'completed' ? `
+                                    <button class="btn btn-sm btn-success" onclick="completeAssignment(${assignment.id})" title="Mark Complete" style="padding: 4px 8px;">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                ` : ''}
+                                <button class="btn btn-sm btn-secondary" onclick="viewProductionTaskAssignment(${assignment.id})" title="View Details" style="padding: 4px 8px;">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="assignment-staff">
-                    <i class="fas fa-user"></i> ${Utils.escapeHtml(staffName)}
-                </div>
-                ${duty ? `
-                    <div class="assignment-time">
-                        <i class="fas fa-clock"></i> ${Utils.formatTime(duty.startTime)} - ${Utils.formatTime(duty.endTime)}
-                    </div>
-                ` : isProductionTask ? `
-                    <div class="assignment-time" style="color: var(--success-500);">
-                        <i class="fas fa-industry"></i> Production Task
-                    </div>
-                ` : ''}
-                ${assignment.notes ? `
-                    <div class="assignment-notes" style="font-size: 11px; color: var(--gray-500); margin-top: 4px;">
-                        <i class="fas fa-sticky-note"></i> ${Utils.escapeHtml(assignment.notes.substring(0, 50))}${assignment.notes.length > 50 ? '...' : ''}
-                    </div>
-                ` : ''}
-                <div class="assignment-status" style="margin-top: 8px;">
-                    ${assignment.status !== 'pending' ? `
-                        <span class="status-badge ${statusClass}">${Utils.capitalize(assignment.status)}</span>
-                    ` : ''}
-                    ${assignment.status !== 'completed' ? `
-                        <button class="btn btn-sm btn-success" onclick="completeAssignment(${assignment.id})" title="Mark Complete">
-                            <i class="fas fa-check"></i>
-                        </button>
-                    ` : ''}
-                    <button class="btn btn-sm btn-secondary" onclick="editAssignment(${assignment.id})" title="Edit">
-                        <i class="fas fa-edit"></i>
-                    </button>
+            `;
+        });
+        
+        html += `
                 </div>
             </div>
         `;
-    }).join('');
+    });
+    
+    // Render regular duties (non-production)
+    if (regularDuties.length > 0) {
+        if (Object.keys(productGroups).length > 0) {
+            html += `<div style="margin: 16px 0; padding: 8px 0; border-top: 1px dashed var(--gray-300); color: var(--gray-500); font-size: 12px; text-align: center;">
+                <i class="fas fa-clipboard-list"></i> Other Duties
+            </div>`;
+        }
+        
+        regularDuties.forEach(assignment => {
+            const staffName = Staff.getName(assignment.staffId);
+            const dutyName = Duties.getName(assignment.dutyId);
+            const duty = Duties.getById(assignment.dutyId);
+            const statusClass = assignment.status === 'completed' ? 'status-completed' : 
+                              assignment.status === 'in-progress' ? 'status-pending' : '';
+            
+            html += `
+                <div class="assignment-item" data-id="${assignment.id}">
+                    <div class="assignment-duty">${Utils.escapeHtml(dutyName)}</div>
+                    <div class="assignment-staff">
+                        <i class="fas fa-user"></i> ${Utils.escapeHtml(staffName)}
+                    </div>
+                    ${duty ? `
+                        <div class="assignment-time">
+                            <i class="fas fa-clock"></i> ${Utils.formatTime(duty.startTime)} - ${Utils.formatTime(duty.endTime)}
+                        </div>
+                    ` : ''}
+                    <div class="assignment-status" style="margin-top: 8px;">
+                        ${assignment.status !== 'pending' ? `
+                            <span class="status-badge ${statusClass}">${Utils.capitalize(assignment.status)}</span>
+                        ` : ''}
+                        ${assignment.status !== 'completed' ? `
+                            <button class="btn btn-sm btn-success" onclick="completeAssignment(${assignment.id})" title="Mark Complete">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        ` : ''}
+                        <button class="btn btn-sm btn-secondary" onclick="editAssignment(${assignment.id})" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
+    container.innerHTML = html;
+}
+
+/**
+ * View production task assignment details
+ */
+async function viewProductionTaskAssignment(id) {
+    const assignment = await DB.get(DB.STORES.ROSTER, id);
+    if (!assignment) {
+        Utils.showToast('error', 'Error', 'Assignment not found');
+        return;
+    }
+    
+    const staffName = Staff.getName(assignment.staffId);
+    
+    const content = `
+        <div style="padding: 10px;">
+            <div style="background: linear-gradient(135deg, var(--success-500), #2E7D32); color: white; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">
+                    <i class="fas fa-industry"></i> ${Utils.escapeHtml(assignment.productName)}
+                    ${assignment.batchNumber ? ` | Batch: ${Utils.escapeHtml(assignment.batchNumber)}` : ''}
+                </div>
+                <h3 style="margin: 0; font-size: 18px;">
+                    <span style="background: white; color: var(--success-500); padding: 2px 10px; border-radius: 20px; font-size: 14px; margin-right: 8px;">${assignment.taskOrder}</span>
+                    ${Utils.escapeHtml(assignment.dutyName)}
+                </h3>
+            </div>
+            
+            <div style="background: var(--gray-50); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <div style="font-size: 11px; color: var(--gray-500);">Assigned To</div>
+                        <div style="font-weight: 600;"><i class="fas fa-user" style="color: var(--primary-500);"></i> ${Utils.escapeHtml(staffName)}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 11px; color: var(--gray-500);">Date</div>
+                        <div style="font-weight: 600;">${Utils.formatDateDisplay(assignment.date)}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 11px; color: var(--gray-500);">Production Time</div>
+                        <div style="font-weight: 600;">${Utils.formatTime(assignment.productionStartTime)} - ${Utils.formatTime(assignment.productionEndTime)}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 11px; color: var(--gray-500);">Status</div>
+                        <div><span class="status-badge status-${assignment.status === 'completed' ? 'completed' : 'pending'}">${Utils.capitalize(assignment.status)}</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            ${assignment.taskDescription ? `
+                <div style="background: var(--primary-50); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                    <h4 style="color: var(--primary-700); margin-bottom: 8px; font-size: 13px;"><i class="fas fa-file-alt"></i> Task Description</h4>
+                    <p style="color: var(--gray-700); margin: 0; font-size: 13px;">${Utils.escapeHtml(assignment.taskDescription)}</p>
+                </div>
+            ` : ''}
+            
+            ${assignment.taskSteps && assignment.taskSteps.length > 0 ? `
+                <div style="background: #E3F2FD; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                    <h4 style="color: #1565C0; margin-bottom: 10px; font-size: 13px;"><i class="fas fa-list-ol"></i> Execution Steps</h4>
+                    <ol style="margin: 0; padding-left: 20px; color: var(--gray-700); font-size: 12px;">
+                        ${assignment.taskSteps.map(step => `<li style="margin-bottom: 4px;">${Utils.escapeHtml(step)}</li>`).join('')}
+                    </ol>
+                </div>
+            ` : ''}
+            
+            ${assignment.taskQcChecks && assignment.taskQcChecks.length > 0 ? `
+                <div style="background: #E8F5E9; padding: 12px; border-radius: 8px;">
+                    <h4 style="color: #2E7D32; margin-bottom: 10px; font-size: 13px;"><i class="fas fa-check-double"></i> QC Checks Required</h4>
+                    <ul style="margin: 0; padding-left: 20px; color: var(--gray-700); font-size: 12px;">
+                        ${assignment.taskQcChecks.map(check => `<li style="margin-bottom: 4px;">${Utils.escapeHtml(check)}</li>`).join('')}
+                    </ul>
+                </div>
+            ` : ''}
+        </div>
+    `;
+    
+    const footer = `
+        <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+        ${assignment.status !== 'completed' ? `
+            <button class="btn btn-success" onclick="completeAssignment(${assignment.id}); closeModal();">
+                <i class="fas fa-check"></i> Mark Complete
+            </button>
+        ` : ''}
+    `;
+    
+    Utils.showModal('Task Assignment Details', content, footer);
 }
 
 /**
@@ -327,25 +502,112 @@ async function editAssignment(id) {
 }
 
 /**
- * Complete assignment
+ * Show completion modal with optional comment
  */
-async function completeAssignment(id) {
+function showCompleteAssignmentModal(id) {
+    const content = `
+        <div style="text-align: center; margin-bottom: 20px;">
+            <i class="fas fa-check-circle" style="font-size: 48px; color: var(--success-500);"></i>
+            <h3 style="margin-top: 16px; color: var(--gray-800);">Mark Task Complete</h3>
+        </div>
+        
+        <div class="form-group">
+            <label for="completionComment" style="font-weight: 600;">
+                <i class="fas fa-comment"></i> Comments (Optional)
+            </label>
+            <textarea id="completionComment" rows="4" 
+                placeholder="Add any notes about task completion, issues encountered, or observations..."
+                style="width: 100%; padding: 12px; border: 1px solid var(--gray-300); border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
+        </div>
+        
+        <div class="form-group" style="margin-top: 16px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="checkbox" id="taskVerified" checked style="width: 18px; height: 18px;">
+                <span>I confirm this task was completed satisfactorily</span>
+            </label>
+        </div>
+    `;
+    
+    const footer = `
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-success" onclick="executeCompleteAssignment(${id})">
+            <i class="fas fa-check"></i> Complete Task
+        </button>
+    `;
+    
+    Utils.showModal('Complete Assignment', content, footer);
+}
+
+/**
+ * Execute assignment completion with logging
+ */
+async function executeCompleteAssignment(id) {
+    const comment = document.getElementById('completionComment')?.value || '';
+    const verified = document.getElementById('taskVerified')?.checked || false;
+    
+    if (!verified) {
+        Utils.showToast('warning', 'Verification Required', 'Please confirm task completion');
+        return;
+    }
+    
     try {
         const assignment = await DB.get(DB.STORES.ROSTER, id);
-        if (!assignment) return;
+        if (!assignment) {
+            Utils.showToast('error', 'Error', 'Assignment not found');
+            return;
+        }
         
+        const completedAt = Utils.getTimestamp();
+        const completedBy = await DB.getSetting('currentUser') || 'Staff';
+        const staffName = Staff.getName(assignment.staffId);
+        
+        // Update assignment status
         assignment.status = 'completed';
-        assignment.completedAt = Utils.getTimestamp();
-        assignment.completedBy = await DB.getSetting('currentUser') || 'Unknown';
+        assignment.completedAt = completedAt;
+        assignment.completedBy = completedBy;
+        assignment.completionComment = comment;
         
         await DB.update(DB.STORES.ROSTER, assignment);
-        Utils.showToast('success', 'Completed', 'Assignment marked as completed');
+        
+        // Create execution log entry
+        const logEntry = {
+            timestamp: completedAt,
+            type: 'task_completion',
+            action: 'COMPLETED',
+            staffId: assignment.staffId,
+            staffName: staffName,
+            assignmentId: id,
+            taskName: assignment.isProductionTask ? assignment.dutyName : Duties.getName(assignment.dutyId),
+            taskType: assignment.isProductionTask ? 'Production Task' : 'Regular Duty',
+            productId: assignment.productId || null,
+            productName: assignment.productName || null,
+            batchNumber: assignment.batchNumber || null,
+            taskOrder: assignment.taskOrder || null,
+            date: assignment.date,
+            comment: comment,
+            entity: 'roster',
+            entityId: id,
+            details: `Task "${assignment.isProductionTask ? assignment.dutyName : Duties.getName(assignment.dutyId)}" completed by ${staffName}`
+        };
+        
+        await DB.add(DB.STORES.LOGS, logEntry);
+        
+        closeModal();
+        Utils.showToast('success', 'Task Completed', 'Task logged and marked as completed');
         await loadRoster();
         updatePendingTasksCount();
+        
     } catch (error) {
         console.error('Error completing assignment:', error);
         Utils.showToast('error', 'Error', 'Failed to complete assignment');
     }
+}
+
+/**
+ * Complete assignment (direct - for backwards compatibility)
+ */
+async function completeAssignment(id) {
+    showCompleteAssignmentModal(id);
 }
 
 /**
@@ -526,6 +788,7 @@ window.Roster = {
 
 /**
  * Export roster to PDF for WhatsApp sharing
+ * Organizes by day and groups production tasks by product
  */
 function exportRosterToPDF() {
     const { jsPDF } = window.jspdf;
@@ -557,21 +820,44 @@ function exportRosterToPDF() {
     
     let yPos = 55;
     
+    // Count products in schedule
+    const productionTasks = weekRoster.filter(r => r.isProductionTask);
+    const productGroups = {};
+    productionTasks.forEach(task => {
+        const productKey = task.productId || 'unknown';
+        if (!productGroups[productKey]) {
+            productGroups[productKey] = {
+                productName: task.productName || productKey,
+                count: 0
+            };
+        }
+        productGroups[productKey].count++;
+    });
+    const productNames = Object.values(productGroups).map(p => p.productName);
+    
     // Week summary box
     doc.setTextColor(0, 0, 0);
     doc.setFillColor(240, 248, 255);
-    doc.roundedRect(15, yPos, 180, 25, 3, 3, 'F');
+    doc.roundedRect(15, yPos, 180, productNames.length > 0 ? 32 : 25, 3, 3, 'F');
     doc.setDrawColor(26, 54, 93);
-    doc.roundedRect(15, yPos, 180, 25, 3, 3, 'S');
+    doc.roundedRect(15, yPos, 180, productNames.length > 0 ? 32 : 25, 3, 3, 'S');
     
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
-    doc.text('📅 Week Overview', 20, yPos + 8);
+    doc.text('Week Overview', 20, yPos + 8);
     doc.setFont('helvetica', 'normal');
     doc.text(`Monday: ${Utils.formatDateDisplay(weekDates.monday)}`, 20, yPos + 16);
     doc.text(`Wednesday: ${Utils.formatDateDisplay(weekDates.wednesday)}`, 80, yPos + 16);
     doc.text(`Saturday: ${Utils.formatDateDisplay(weekDates.saturday)}`, 140, yPos + 16);
     doc.text(`Total Assignments: ${weekRoster.length}`, 20, yPos + 22);
+    
+    if (productNames.length > 0) {
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(46, 125, 50);
+        doc.text(`Products: ${productNames.join(', ').substring(0, 70)}${productNames.join(', ').length > 70 ? '...' : ''}`, 20, yPos + 29);
+        doc.setTextColor(0, 0, 0);
+        yPos += 7;
+    }
     
     yPos += 35;
     
@@ -587,7 +873,7 @@ function exportRosterToPDF() {
         const dayAssignments = weekRoster.filter(r => r.date === dateStr);
         
         // Check if we need a new page
-        if (yPos > 240) {
+        if (yPos > 220) {
             doc.addPage();
             yPos = 20;
         }
@@ -611,75 +897,206 @@ function exportRosterToPDF() {
             doc.text('No assignments scheduled for this day', 20, yPos);
             yPos += 12;
         } else {
-            // Table header
-            doc.setFillColor(248, 249, 250);
-            doc.rect(15, yPos - 3, 180, 10, 'F');
-            doc.setFontSize(9);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(60, 60, 60);
-            doc.text('#', 18, yPos + 4);
-            doc.text('Staff Member', 28, yPos + 4);
-            doc.text('Duty / Task', 80, yPos + 4);
-            doc.text('Time', 140, yPos + 4);
-            doc.text('Status', 170, yPos + 4);
+            // Separate production tasks and regular duties
+            const dayProductionTasks = dayAssignments.filter(a => a.isProductionTask);
+            const dayRegularDuties = dayAssignments.filter(a => !a.isProductionTask);
             
-            yPos += 12;
+            // Group production tasks by product
+            const dayProductGroups = {};
+            dayProductionTasks.forEach(task => {
+                const productKey = task.productId || 'unknown';
+                if (!dayProductGroups[productKey]) {
+                    dayProductGroups[productKey] = {
+                        productName: task.productName || productKey,
+                        batchNumber: task.batchNumber || '',
+                        startTime: task.productionStartTime || '',
+                        endTime: task.productionEndTime || '',
+                        tasks: []
+                    };
+                }
+                dayProductGroups[productKey].tasks.push(task);
+            });
             
-            // Table rows
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor(0, 0, 0);
+            // Sort tasks within each product group by order
+            Object.keys(dayProductGroups).forEach(key => {
+                dayProductGroups[key].tasks.sort((a, b) => (a.taskOrder || 0) - (b.taskOrder || 0));
+            });
             
-            dayAssignments.forEach((assignment, idx) => {
-                if (yPos > 270) {
+            // Render each product group
+            Object.keys(dayProductGroups).forEach(productKey => {
+                const group = dayProductGroups[productKey];
+                
+                // Check page space
+                if (yPos > 240) {
                     doc.addPage();
                     yPos = 20;
                 }
                 
-                const staffName = Staff.getName(assignment.staffId);
-                const dutyName = Duties.getName(assignment.dutyId);
-                const duty = Duties.getById(assignment.dutyId);
-                const timeStr = duty ? `${Utils.formatTime(duty.startTime)} - ${Utils.formatTime(duty.endTime)}` : '-';
-                const statusIcon = assignment.status === 'completed' ? '✅' : '⬜';
-                
-                // Alternating row colors
-                if (idx % 2 === 0) {
-                    doc.setFillColor(255, 255, 255);
-                } else {
-                    doc.setFillColor(250, 250, 250);
-                }
-                doc.rect(15, yPos - 4, 180, 10, 'F');
-                
-                doc.setFontSize(9);
-                doc.text(`${idx + 1}.`, 18, yPos + 2);
+                // Product header
+                doc.setFillColor(232, 245, 233);
+                doc.rect(15, yPos - 3, 180, 14, 'F');
+                doc.setFontSize(10);
                 doc.setFont('helvetica', 'bold');
-                doc.text(staffName.substring(0, 25), 28, yPos + 2);
-                doc.setFont('helvetica', 'normal');
-                doc.text(dutyName.substring(0, 30), 80, yPos + 2);
-                doc.setFontSize(8);
-                doc.text(timeStr, 140, yPos + 2);
-                doc.text(statusIcon, 175, yPos + 2);
+                doc.setTextColor(46, 125, 50);
+                doc.text(`PRODUCT: ${group.productName}`, 18, yPos + 4);
+                if (group.batchNumber) {
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(8);
+                    doc.text(`Batch: ${group.batchNumber}`, 130, yPos + 4);
+                }
+                if (group.startTime && group.endTime) {
+                    doc.text(`${Utils.formatTime(group.startTime)} - ${Utils.formatTime(group.endTime)}`, 165, yPos + 4);
+                }
                 
-                yPos += 8;
+                yPos += 14;
+                
+                // Task table header
+                doc.setFillColor(248, 249, 250);
+                doc.rect(15, yPos - 3, 180, 8, 'F');
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(60, 60, 60);
+                doc.text('#', 18, yPos + 2);
+                doc.text('Task', 28, yPos + 2);
+                doc.text('Assigned To', 100, yPos + 2);
+                doc.text('Status', 165, yPos + 2);
+                
+                yPos += 10;
+                
+                // Task rows
+                group.tasks.forEach((task, idx) => {
+                    if (yPos > 270) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                    
+                    const staffName = Staff.getName(task.staffId);
+                    const statusIcon = task.status === 'completed' ? 'DONE' : 'PENDING';
+                    
+                    // Alternating row colors
+                    if (idx % 2 === 0) {
+                        doc.setFillColor(255, 255, 255);
+                    } else {
+                        doc.setFillColor(250, 250, 250);
+                    }
+                    doc.rect(15, yPos - 3, 180, 8, 'F');
+                    
+                    doc.setFontSize(8);
+                    doc.setTextColor(46, 125, 50);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(`${task.taskOrder || idx + 1}`, 20, yPos + 2);
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFont('helvetica', 'normal');
+                    doc.text((task.dutyName || '').substring(0, 35), 28, yPos + 2);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(staffName.substring(0, 30), 100, yPos + 2);
+                    doc.setFont('helvetica', 'normal');
+                    if (task.status === 'completed') {
+                        doc.setTextColor(46, 125, 50);
+                    } else {
+                        doc.setTextColor(128, 128, 128);
+                    }
+                    doc.text(statusIcon, 168, yPos + 2);
+                    doc.setTextColor(0, 0, 0);
+                    
+                    yPos += 7;
+                });
+                
+                yPos += 5;
             });
+            
+            // Render regular duties if any
+            if (dayRegularDuties.length > 0) {
+                if (Object.keys(dayProductGroups).length > 0) {
+                    if (yPos > 250) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                    doc.setFontSize(9);
+                    doc.setFont('helvetica', 'italic');
+                    doc.setTextColor(128, 128, 128);
+                    doc.text('--- Other Duties ---', 105, yPos, { align: 'center' });
+                    yPos += 8;
+                }
+                
+                // Table header for regular duties
+                doc.setFillColor(248, 249, 250);
+                doc.rect(15, yPos - 3, 180, 10, 'F');
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(60, 60, 60);
+                doc.text('#', 18, yPos + 4);
+                doc.text('Staff Member', 28, yPos + 4);
+                doc.text('Duty', 80, yPos + 4);
+                doc.text('Time', 140, yPos + 4);
+                doc.text('Status', 170, yPos + 4);
+                
+                yPos += 12;
+                
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(0, 0, 0);
+                
+                dayRegularDuties.forEach((assignment, idx) => {
+                    if (yPos > 270) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                    
+                    const staffName = Staff.getName(assignment.staffId);
+                    const dutyName = Duties.getName(assignment.dutyId);
+                    const duty = Duties.getById(assignment.dutyId);
+                    const timeStr = duty ? `${Utils.formatTime(duty.startTime)} - ${Utils.formatTime(duty.endTime)}` : '-';
+                    const statusIcon = assignment.status === 'completed' ? 'DONE' : 'PENDING';
+                    
+                    if (idx % 2 === 0) {
+                        doc.setFillColor(255, 255, 255);
+                    } else {
+                        doc.setFillColor(250, 250, 250);
+                    }
+                    doc.rect(15, yPos - 4, 180, 10, 'F');
+                    
+                    doc.setFontSize(9);
+                    doc.text(`${idx + 1}.`, 18, yPos + 2);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(staffName.substring(0, 25), 28, yPos + 2);
+                    doc.setFont('helvetica', 'normal');
+                    doc.text((dutyName || '').substring(0, 30), 80, yPos + 2);
+                    doc.setFontSize(8);
+                    doc.text(timeStr, 140, yPos + 2);
+                    doc.text(statusIcon, 175, yPos + 2);
+                    
+                    yPos += 8;
+                });
+            }
         }
         
         yPos += 10;
     });
     
-    // Production-linked roster indicator
-    const productionLinked = weekRoster.filter(r => r.linkedProductionId);
-    if (productionLinked.length > 0) {
-        if (yPos > 250) {
+    // Production summary at the end
+    const totalProductionTasks = productionTasks.length;
+    if (totalProductionTasks > 0) {
+        if (yPos > 230) {
             doc.addPage();
             yPos = 20;
         }
         
-        doc.setFillColor(255, 243, 205);
-        doc.roundedRect(15, yPos, 180, 15, 3, 3, 'F');
+        doc.setFillColor(232, 245, 233);
+        doc.roundedRect(15, yPos, 180, 25, 3, 3, 'F');
+        doc.setDrawColor(46, 125, 50);
+        doc.roundedRect(15, yPos, 180, 25, 3, 3, 'S');
+        
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(46, 125, 50);
+        doc.text('Production Summary', 20, yPos + 8);
+        doc.setFont('helvetica', 'normal');
         doc.setFontSize(9);
-        doc.setTextColor(133, 100, 4);
-        doc.text(`📋 ${productionLinked.length} assignments are linked to production schedules`, 20, yPos + 9);
-        yPos += 20;
+        doc.text(`Total Production Tasks: ${totalProductionTasks}`, 20, yPos + 16);
+        doc.text(`Products Scheduled: ${productNames.length}`, 80, yPos + 16);
+        doc.text(`Staff Assigned: ${new Set(productionTasks.map(t => t.staffId)).size}`, 140, yPos + 16);
+        
+        yPos += 30;
     }
     
     // Footer on all pages
@@ -748,6 +1165,7 @@ function showRosterShareModal(fileName) {
 /**
  * Generate roster entries from a production schedule
  * Called when production is scheduled to auto-create duty assignments
+ * Tasks are product-specific and assigned based on selected product
  */
 async function generateRosterFromProduction(production) {
     if (!production || !production.tasks || !production.assignedStaff) {
@@ -759,12 +1177,17 @@ async function generateRosterFromProduction(production) {
     let assignmentsCreated = 0;
     let duplicatesSkipped = 0;
     
+    // Get product name for display
+    const productInfo = window.Production && window.Production.PRODUCTS ? 
+        window.Production.PRODUCTS.find(p => p.id === production.productId) : null;
+    const productDisplayName = productInfo ? productInfo.name : production.productId;
+    
     try {
         // Get existing roster for this week
         const existingRoster = await DB.getAll(DB.STORES.ROSTER);
         const weekRoster = existingRoster.filter(r => r.weekNumber === weekNumber);
         
-        // Create duty assignments from production tasks
+        // Create duty assignments from production tasks - each task is product-specific
         for (const task of production.tasks) {
             if (!task.staffId) continue; // Skip unassigned tasks
             
@@ -781,17 +1204,26 @@ async function generateRosterFromProduction(production) {
                 continue;
             }
             
-            // Create roster entry
+            // Create roster entry with full product context
             const rosterEntry = {
                 date: productionDate,
                 weekNumber: weekNumber,
                 staffId: task.staffId,
                 dutyId: null, // Production task, not a predefined duty
                 dutyName: task.name, // Store task name directly
+                taskDescription: task.description || '',
+                taskSteps: task.steps || [],
+                taskQcChecks: task.qcChecks || [],
+                taskOrder: task.order,
                 linkedProductionId: production.id,
                 linkedTaskId: task.id,
-                productName: production.productId,
-                notes: `Production Task: ${task.name} (Batch: ${production.batchNumber || 'N/A'})`,
+                productId: production.productId,
+                productName: productDisplayName,
+                batchNumber: production.batchNumber || '',
+                targetQuantity: production.targetQuantity,
+                productionStartTime: production.startTime,
+                productionEndTime: production.endTime,
+                notes: `[${productDisplayName}] Task ${task.order}: ${task.name}`,
                 status: 'pending',
                 isProductionTask: true
             };
@@ -807,7 +1239,8 @@ async function generateRosterFromProduction(production) {
             success: true,
             assignmentsCreated,
             duplicatesSkipped,
-            message: `Created ${assignmentsCreated} duty assignments${duplicatesSkipped > 0 ? `, skipped ${duplicatesSkipped} duplicates` : ''}`
+            productName: productDisplayName,
+            message: `Created ${assignmentsCreated} ${productDisplayName} tasks${duplicatesSkipped > 0 ? `, skipped ${duplicatesSkipped} duplicates` : ''}`
         };
     } catch (error) {
         console.error('Error generating roster from production:', error);

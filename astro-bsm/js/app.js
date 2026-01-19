@@ -79,6 +79,7 @@ function navigateTo(page) {
         roster: 'Duty Roster',
         production: 'Production Scheduling',
         logs: 'Logs & Reports',
+        performance: 'Staff Performance',
         settings: 'Settings'
     };
     document.getElementById('pageTitle').textContent = titles[page] || 'Dashboard';
@@ -87,6 +88,15 @@ function navigateTo(page) {
     if (page === 'logs') {
         Reports.generate();
         Reports.loadAuditLog();
+        if (typeof loadTaskExecutionLogs === 'function') {
+            loadTaskExecutionLogs();
+        }
+    }
+    
+    if (page === 'performance') {
+        if (typeof loadPerformanceData === 'function') {
+            loadPerformanceData();
+        }
     }
     
     currentPage = page;

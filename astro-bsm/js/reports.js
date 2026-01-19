@@ -566,5 +566,352 @@ async function loadAuditLog() {
 window.Reports = {
     generate: generateReport,
     export: exportReport,
-    loadAuditLog
+    loadAuditLog,
+    loadTaskExecutionLogs
 };
+
+// Task execution logs cache
+let taskLogsCache = [];
+
+/**
+ * Load task execution logs
+ */
+async function loadTaskExecutionLogs() {
+    try {
+        const logs = await DB.getAll(DB.STORES.LOGS);
+        taskLogsCache = logs.filter(log => log.type === 'task_completion');
+        
+        // Populate filter dropdowns
+        populateLogFilters();
+        
+        // Apply filters and render
+        filterTaskLogs();
+        
+    } catch (error) {
+        console.error('Error loading task logs:', error);
+    }
+}
+
+/**
+ * Show task execution log section
+ */
+function showTaskExecutionLog() {
+    const section = document.getElementById('taskExecutionLogSection');
+    if (section) {
+        section.scrollIntoView({ behavior: 'smooth' });
+    }
+    loadTaskExecutionLogs();
+}
+
+/**
+ * Populate log filter dropdowns
+ */
+function populateLogFilters() {
+    // Staff filter
+    const staffFilter = document.getElementById('logFilterStaff');
+    if (staffFilter) {
+        const staffList = Staff.getActive();
+        staffFilter.innerHTML = '<option value="all">All Staff</option>' +
+            staffList.map(s => `<option value="${s.id}">${Utils.escapeHtml(s.name)}</option>`).join('');
+    }
+    
+    // Product filter
+    const productFilter = document.getElementById('logFilterProduct');
+    if (productFilter) {
+        const products = [...new Set(taskLogsCache.filter(l => l.productName).map(l => l.productName))];
+        productFilter.innerHTML = '<option value="all">All Products</option>' +
+            products.map(p => `<option value="${p}">${Utils.escapeHtml(p)}</option>`).join('');
+    }
+}
+
+/**
+ * Filter and render task logs
+ */
+function filterTaskLogs() {
+    const dateFilter = document.getElementById('logFilterDate')?.value || 'week';
+    const staffFilter = document.getElementById('logFilterStaff')?.value || 'all';
+    const productFilter = document.getElementById('logFilterProduct')?.value || 'all';
+    const typeFilter = document.getElementById('logFilterType')?.value || 'all';
+    
+    let filteredLogs = [...taskLogsCache];
+    
+    // Date filter
+    const now = new Date();
+    let startDate;
+    switch (dateFilter) {
+        case 'today':
+            startDate = new Date(now.setHours(0, 0, 0, 0));
+            break;
+        case 'week':
+            startDate = new Date(now);
+            startDate.setDate(startDate.getDate() - 7);
+            break;
+        case 'month':
+            startDate = new Date(now);
+            startDate.setMonth(startDate.getMonth() - 1);
+            break;
+        case 'all':
+        default:
+            startDate = null;
+    }
+    
+    if (startDate) {
+        filteredLogs = filteredLogs.filter(log => new Date(log.timestamp) >= startDate);
+    }
+    
+    // Staff filter
+    if (staffFilter !== 'all') {
+        filteredLogs = filteredLogs.filter(log => log.staffId === parseInt(staffFilter));
+    }
+    
+    // Product filter
+    if (productFilter !== 'all') {
+        filteredLogs = filteredLogs.filter(log => log.productName === productFilter);
+    }
+    
+    // Type filter
+    if (typeFilter !== 'all') {
+        filteredLogs = filteredLogs.filter(log => log.taskType === typeFilter);
+    }
+    
+    // Sort by timestamp descending
+    filteredLogs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
+    // Update summary stats
+    updateLogSummary(filteredLogs);
+    
+    // Render logs
+    renderTaskLogs(filteredLogs);
+}
+
+/**
+ * Update log summary statistics
+ */
+function updateLogSummary(logs) {
+    document.getElementById('logTotalCompleted').textContent = logs.length;
+    document.getElementById('logTotalStaff').textContent = new Set(logs.map(l => l.staffId)).size;
+    document.getElementById('logTotalProducts').textContent = new Set(logs.filter(l => l.productName).map(l => l.productName)).size;
+    document.getElementById('logWithComments').textContent = logs.filter(l => l.comment && l.comment.trim()).length;
+    document.getElementById('logEntryCount').textContent = `${logs.length} entries`;
+}
+
+/**
+ * Render task log entries
+ */
+function renderTaskLogs(logs) {
+    const container = document.getElementById('taskLogEntries');
+    if (!container) return;
+    
+    if (logs.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: var(--gray-500);">
+                <i class="fas fa-clipboard-list" style="font-size: 48px; margin-bottom: 16px;"></i>
+                <p>No task logs found</p>
+                <p style="font-size: 13px;">Complete tasks to start logging!</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = logs.map(log => {
+        const hasComment = log.comment && log.comment.trim().length > 0;
+        const isProductionTask = log.taskType === 'Production Task';
+        
+        return `
+            <div class="log-entry-item" style="padding: 16px; border-bottom: 1px solid var(--gray-100); ${isProductionTask ? 'background: linear-gradient(to right, #E8F5E9, white);' : ''}">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                            <span style="background: var(--success-500); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px;">
+                                <i class="fas fa-check"></i> COMPLETED
+                            </span>
+                            ${isProductionTask ? `
+                                <span style="background: #2E7D32; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px;">
+                                    <i class="fas fa-industry"></i> Production
+                                </span>
+                            ` : ''}
+                            ${hasComment ? `
+                                <span style="background: var(--primary-500); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px;">
+                                    <i class="fas fa-comment"></i> Commented
+                                </span>
+                            ` : ''}
+                        </div>
+                        <div style="font-weight: 600; color: var(--gray-800); margin-bottom: 4px;">
+                            ${log.taskOrder ? `<span style="color: var(--success-500);">#${log.taskOrder}</span> ` : ''}
+                            ${Utils.escapeHtml(log.taskName || 'Task')}
+                        </div>
+                        <div style="font-size: 13px; color: var(--gray-600);">
+                            <i class="fas fa-user" style="color: var(--primary-500);"></i> 
+                            <strong>${Utils.escapeHtml(log.staffName || 'Unknown')}</strong>
+                            ${log.productName ? ` | <i class="fas fa-box"></i> ${Utils.escapeHtml(log.productName)}` : ''}
+                            ${log.batchNumber ? ` | Batch: ${Utils.escapeHtml(log.batchNumber)}` : ''}
+                        </div>
+                        ${hasComment ? `
+                            <div style="background: var(--gray-50); padding: 10px; border-radius: 6px; margin-top: 10px; font-size: 13px; color: var(--gray-700);">
+                                <i class="fas fa-quote-left" style="color: var(--gray-400); margin-right: 4px;"></i>
+                                ${Utils.escapeHtml(log.comment)}
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div style="text-align: right; font-size: 12px; color: var(--gray-500);">
+                        <div><i class="fas fa-calendar"></i> ${Utils.formatDateDisplay(log.date)}</div>
+                        <div><i class="fas fa-clock"></i> ${Utils.formatTime(new Date(log.timestamp).toTimeString().substring(0, 5))}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+/**
+ * Export task execution log to PDF
+ */
+function exportTaskLogToPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    const dateFilter = document.getElementById('logFilterDate')?.value || 'week';
+    const periodLabels = { today: 'Today', week: 'This Week', month: 'This Month', all: 'All Time' };
+    
+    // Get filtered logs
+    let logs = [...taskLogsCache];
+    
+    // Apply date filter
+    const now = new Date();
+    let startDate;
+    switch (dateFilter) {
+        case 'today':
+            startDate = new Date(now.setHours(0, 0, 0, 0));
+            break;
+        case 'week':
+            startDate = new Date(now);
+            startDate.setDate(startDate.getDate() - 7);
+            break;
+        case 'month':
+            startDate = new Date(now);
+            startDate.setMonth(startDate.getMonth() - 1);
+            break;
+    }
+    
+    if (startDate) {
+        logs = logs.filter(log => new Date(log.timestamp) >= startDate);
+    }
+    
+    logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
+    if (logs.length === 0) {
+        Utils.showToast('warning', 'No Data', 'No task logs to export');
+        return;
+    }
+    
+    // Header
+    doc.setFillColor(26, 54, 93);
+    doc.rect(0, 0, 210, 45, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(28);
+    doc.setFont('helvetica', 'bold');
+    doc.text('ASTRO-BSM', 105, 18, { align: 'center' });
+    
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Task Execution Log', 105, 28, { align: 'center' });
+    
+    doc.setFontSize(11);
+    doc.text(`Period: ${periodLabels[dateFilter] || dateFilter}`, 105, 38, { align: 'center' });
+    
+    let yPos = 55;
+    
+    // Summary
+    doc.setTextColor(0, 0, 0);
+    doc.setFillColor(240, 248, 255);
+    doc.roundedRect(15, yPos, 180, 20, 3, 3, 'F');
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Summary', 20, yPos + 8);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Total Completed: ${logs.length}`, 20, yPos + 15);
+    doc.text(`Staff: ${new Set(logs.map(l => l.staffId)).size}`, 80, yPos + 15);
+    doc.text(`With Comments: ${logs.filter(l => l.comment && l.comment.trim()).length}`, 130, yPos + 15);
+    
+    yPos += 30;
+    
+    // Table header
+    doc.setFillColor(46, 125, 50);
+    doc.rect(15, yPos, 180, 10, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Date/Time', 18, yPos + 7);
+    doc.text('Staff', 50, yPos + 7);
+    doc.text('Task', 90, yPos + 7);
+    doc.text('Product', 150, yPos + 7);
+    
+    yPos += 14;
+    
+    // Log entries
+    doc.setTextColor(0, 0, 0);
+    doc.setFont('helvetica', 'normal');
+    
+    logs.forEach((log, idx) => {
+        if (yPos > 260) {
+            doc.addPage();
+            yPos = 20;
+        }
+        
+        if (idx % 2 === 0) {
+            doc.setFillColor(255, 255, 255);
+        } else {
+            doc.setFillColor(250, 250, 250);
+        }
+        doc.rect(15, yPos - 3, 180, 12, 'F');
+        
+        doc.setFontSize(8);
+        const dateTime = `${Utils.formatDateDisplay(log.date).split(',')[1]?.trim() || log.date}\n${new Date(log.timestamp).toTimeString().substring(0, 5)}`;
+        doc.text(dateTime.split('\n')[0] || '', 18, yPos + 2);
+        doc.text(dateTime.split('\n')[1] || '', 18, yPos + 7);
+        
+        doc.setFont('helvetica', 'bold');
+        doc.text((log.staffName || 'Unknown').substring(0, 20), 50, yPos + 4);
+        doc.setFont('helvetica', 'normal');
+        doc.text((log.taskName || 'Task').substring(0, 30), 90, yPos + 4);
+        doc.text((log.productName || '-').substring(0, 20), 150, yPos + 4);
+        
+        yPos += 12;
+        
+        // Add comment if exists
+        if (log.comment && log.comment.trim()) {
+            if (yPos > 270) {
+                doc.addPage();
+                yPos = 20;
+            }
+            doc.setFillColor(232, 245, 233);
+            doc.rect(20, yPos - 2, 170, 8, 'F');
+            doc.setFontSize(7);
+            doc.setTextColor(60, 60, 60);
+            doc.text(`Comment: ${log.comment.substring(0, 80)}${log.comment.length > 80 ? '...' : ''}`, 22, yPos + 3);
+            doc.setTextColor(0, 0, 0);
+            yPos += 10;
+        }
+    });
+    
+    // Footer
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(128, 128, 128);
+        doc.line(15, 280, 195, 280);
+        doc.text('ASTRO-BSM Factory Operations | Task Execution Log', 105, 285, { align: 'center' });
+        doc.text(`Generated: ${new Date().toLocaleString()}`, 15, 290);
+        doc.text(`Page ${i} of ${pageCount}`, 195, 290, { align: 'right' });
+    }
+    
+    // Save
+    const fileName = `Task_Log_${dateFilter}_${Utils.formatDate(new Date())}.pdf`;
+    doc.save(fileName);
+    
+    Utils.showToast('success', 'PDF Ready', 'Task execution log exported!');
+}

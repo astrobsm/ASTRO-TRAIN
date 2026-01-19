@@ -1959,6 +1959,90 @@ textarea.form-control {
     background: linear-gradient(to right, #E8F5E9, white);
 }
 
+/* Production task item styles */
+.production-task-item {
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.production-task-item:hover {
+    transform: translateX(4px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Product group in roster */
+.product-group {
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.product-group-header {
+    position: relative;
+    overflow: hidden;
+}
+
+.product-group-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.1) 75%, transparent 75%);
+    background-size: 20px 20px;
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.product-group-tasks {
+    background: white;
+}
+
+/* Mobile responsive product groups */
+@media (max-width: 768px) {
+    .product-group {
+        margin-bottom: 12px;
+    }
+    
+    .product-group-header {
+        padding: 10px !important;
+    }
+    
+    .product-group-header > div:first-child {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+    
+    .product-group-tasks {
+        padding: 6px !important;
+    }
+    
+    .production-task-item {
+        padding: 8px !important;
+        margin-bottom: 6px !important;
+    }
+    
+    .production-task-item > div {
+        flex-direction: column !important;
+        gap: 8px;
+    }
+    
+    .production-task-item .assignment-status {
+        align-items: flex-start !important;
+        flex-direction: row;
+        width: 100%;
+    }
+}
+
 /* Scrollable modals */
 .modal-body {
     overflow-y: auto;
@@ -1997,4 +2081,103 @@ textarea.form-control {
     .modal {
         padding-bottom: env(safe-area-inset-bottom);
     }
+}
+
+/* ===========================================
+   Performance Analytics Styles
+   =========================================== */
+.performance-summary .perf-card {
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.performance-summary .perf-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.leaderboard-entry {
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.leaderboard-entry:hover {
+    background: var(--gray-50) !important;
+}
+
+.reward-tier {
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.reward-tier:hover {
+    transform: scale(1.02);
+    box-shadow: var(--shadow-md);
+}
+
+/* Mobile responsive performance page */
+@media (max-width: 992px) {
+    .performance-content {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .performance-summary {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    .perf-metrics-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    .staff-perf-header {
+        flex-direction: column !important;
+        text-align: center;
+    }
+    
+    .metrics-info > div {
+        grid-template-columns: 1fr 1fr !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .performance-summary {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .perf-metrics-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Leaderboard animations */
+@keyframes slideInRank {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.leaderboard-entry {
+    animation: slideInRank 0.3s ease-out forwards;
+}
+
+.leaderboard-entry:nth-child(1) { animation-delay: 0.05s; }
+.leaderboard-entry:nth-child(2) { animation-delay: 0.1s; }
+.leaderboard-entry:nth-child(3) { animation-delay: 0.15s; }
+.leaderboard-entry:nth-child(4) { animation-delay: 0.2s; }
+.leaderboard-entry:nth-child(5) { animation-delay: 0.25s; }
+
+/* Trophy shine effect */
+@keyframes shine {
+    0% { opacity: 0.3; }
+    50% { opacity: 1; }
+    100% { opacity: 0.3; }
+}
+
+.perf-card:first-child i {
+    animation: shine 2s ease-in-out infinite;
 }

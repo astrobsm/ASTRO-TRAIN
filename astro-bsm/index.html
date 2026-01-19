@@ -83,6 +83,10 @@
                     <i class="fas fa-history"></i>
                     <span>Logs & Reports</span>
                 </a>
+                <a href="#" class="nav-item" data-page="performance" onclick="navigateTo('performance')">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Performance</span>
+                </a>
                 <a href="#" class="nav-item" data-page="settings" onclick="navigateTo('settings')">
                     <i class="fas fa-cog"></i>
                     <span>Settings</span>
@@ -196,6 +200,10 @@
                                     <button class="action-btn" onclick="generateWeeklyRoster()">
                                         <i class="fas fa-sync-alt"></i>
                                         <span>Auto-Generate Roster</span>
+                                    </button>
+                                    <button class="action-btn" onclick="navigateTo('performance')">
+                                        <i class="fas fa-chart-line"></i>
+                                        <span>Staff Performance</span>
                                     </button>
                                     <button class="action-btn" onclick="navigateTo('logs')">
                                         <i class="fas fa-file-alt"></i>
@@ -321,28 +329,203 @@
                     <div class="page-header">
                         <h2>Logs & Reports</h2>
                         <div class="header-controls">
-                            <select id="reportType" onchange="generateReport()">
-                                <option value="daily">Daily Duty Report</option>
-                                <option value="weekly">Weekly Roster Report</option>
-                                <option value="production">Production Schedule Report</option>
-                            </select>
-                            <button class="btn btn-secondary" onclick="exportReport('pdf')">
-                                <i class="fas fa-file-pdf"></i> Export PDF
+                            <button class="btn btn-primary" onclick="showTaskExecutionLog()">
+                                <i class="fas fa-tasks"></i> Task Execution Log
                             </button>
-                            <button class="btn btn-secondary" onclick="exportReport('csv')">
-                                <i class="fas fa-file-csv"></i> Export CSV
+                            <button class="btn btn-success" onclick="exportTaskLogToPDF()">
+                                <i class="fas fa-file-pdf"></i> Export Log PDF
                             </button>
                         </div>
                     </div>
-                    <div class="logs-container">
-                        <div class="report-preview" id="reportPreview">
-                            <!-- Report content will be generated here -->
+                    
+                    <!-- Task Execution Log Section -->
+                    <div class="logs-section" id="taskExecutionLogSection">
+                        <div class="log-filters" style="background: white; padding: 16px; border-radius: 8px; margin-bottom: 16px; box-shadow: var(--shadow);">
+                            <h3 style="margin-bottom: 12px;"><i class="fas fa-filter"></i> Filter Logs</h3>
+                            <div class="filter-row" style="display: flex; gap: 16px; flex-wrap: wrap;">
+                                <div class="form-group" style="flex: 1; min-width: 150px;">
+                                    <label for="logFilterDate">Date Range</label>
+                                    <select id="logFilterDate" onchange="filterTaskLogs()">
+                                        <option value="today">Today</option>
+                                        <option value="week" selected>This Week</option>
+                                        <option value="month">This Month</option>
+                                        <option value="all">All Time</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="flex: 1; min-width: 150px;">
+                                    <label for="logFilterStaff">Staff Member</label>
+                                    <select id="logFilterStaff" onchange="filterTaskLogs()">
+                                        <option value="all">All Staff</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="flex: 1; min-width: 150px;">
+                                    <label for="logFilterProduct">Product</label>
+                                    <select id="logFilterProduct" onchange="filterTaskLogs()">
+                                        <option value="all">All Products</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="flex: 1; min-width: 150px;">
+                                    <label for="logFilterType">Task Type</label>
+                                    <select id="logFilterType" onchange="filterTaskLogs()">
+                                        <option value="all">All Types</option>
+                                        <option value="Production Task">Production Tasks</option>
+                                        <option value="Regular Duty">Regular Duties</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                        <div class="audit-log">
+                        
+                        <div class="log-summary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
+                            <div class="summary-card" style="background: linear-gradient(135deg, var(--success-500), #2E7D32); color: white; padding: 16px; border-radius: 8px; text-align: center;">
+                                <div style="font-size: 28px; font-weight: 700;" id="logTotalCompleted">0</div>
+                                <div style="font-size: 13px; opacity: 0.9;">Tasks Completed</div>
+                            </div>
+                            <div class="summary-card" style="background: linear-gradient(135deg, var(--primary-500), var(--primary-700)); color: white; padding: 16px; border-radius: 8px; text-align: center;">
+                                <div style="font-size: 28px; font-weight: 700;" id="logTotalStaff">0</div>
+                                <div style="font-size: 13px; opacity: 0.9;">Staff Logged</div>
+                            </div>
+                            <div class="summary-card" style="background: linear-gradient(135deg, var(--warning-500), #E65100); color: white; padding: 16px; border-radius: 8px; text-align: center;">
+                                <div style="font-size: 28px; font-weight: 700;" id="logTotalProducts">0</div>
+                                <div style="font-size: 13px; opacity: 0.9;">Products Worked</div>
+                            </div>
+                            <div class="summary-card" style="background: linear-gradient(135deg, #7B1FA2, #4A148C); color: white; padding: 16px; border-radius: 8px; text-align: center;">
+                                <div style="font-size: 28px; font-weight: 700;" id="logWithComments">0</div>
+                                <div style="font-size: 13px; opacity: 0.9;">With Comments</div>
+                            </div>
+                        </div>
+                        
+                        <div class="log-entries-container" style="background: white; border-radius: 8px; box-shadow: var(--shadow); overflow: hidden;">
+                            <div class="log-entries-header" style="background: var(--gray-100); padding: 12px 16px; border-bottom: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: center;">
+                                <h3 style="margin: 0;"><i class="fas fa-list"></i> Task Execution Log</h3>
+                                <span id="logEntryCount" style="color: var(--gray-600); font-size: 13px;">0 entries</span>
+                            </div>
+                            <div class="log-entries-list" id="taskLogEntries" style="max-height: 500px; overflow-y: auto;">
+                                <!-- Log entries will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Legacy Reports Section -->
+                    <div class="logs-container" style="margin-top: 24px;">
+                        <div class="report-section" style="background: white; padding: 16px; border-radius: 8px; box-shadow: var(--shadow);">
+                            <h3 style="margin-bottom: 16px;"><i class="fas fa-chart-bar"></i> Quick Reports</h3>
+                            <div class="header-controls" style="margin-bottom: 16px;">
+                                <select id="reportType" onchange="generateReport()">
+                                    <option value="daily">Daily Duty Report</option>
+                                    <option value="weekly">Weekly Roster Report</option>
+                                    <option value="production">Production Schedule Report</option>
+                                </select>
+                                <button class="btn btn-secondary" onclick="exportReport('pdf')">
+                                    <i class="fas fa-file-pdf"></i> Export PDF
+                                </button>
+                                <button class="btn btn-secondary" onclick="exportReport('csv')">
+                                    <i class="fas fa-file-csv"></i> Export CSV
+                                </button>
+                            </div>
+                            <div class="report-preview" id="reportPreview">
+                                <!-- Report content will be generated here -->
+                            </div>
+                        </div>
+                        <div class="audit-log" style="background: white; padding: 16px; border-radius: 8px; box-shadow: var(--shadow); margin-top: 16px;">
                             <h3><i class="fas fa-shield-alt"></i> Audit Trail</h3>
                             <div class="log-entries" id="auditLogEntries">
                                 <!-- Audit log entries -->
                             </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Performance Analytics Page -->
+                <section id="page-performance" class="page">
+                    <div class="page-header">
+                        <h2>Staff Performance Analytics</h2>
+                        <div class="header-controls">
+                            <select id="performancePeriod" onchange="loadPerformanceData()">
+                                <option value="week">This Week</option>
+                                <option value="month" selected>This Month</option>
+                                <option value="quarter">This Quarter</option>
+                                <option value="year">This Year</option>
+                                <option value="all">All Time</option>
+                            </select>
+                            <button class="btn btn-success" onclick="exportPerformancePDF()">
+                                <i class="fas fa-file-pdf"></i> Export Report
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Performance Summary Cards -->
+                    <div class="performance-summary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                        <div class="perf-card" style="background: linear-gradient(135deg, #FFD700, #FFA000); color: #333; padding: 20px; border-radius: 12px; text-align: center;">
+                            <div style="font-size: 40px; margin-bottom: 8px;"><i class="fas fa-trophy"></i></div>
+                            <div style="font-size: 14px; font-weight: 600;">Top Performer</div>
+                            <div style="font-size: 20px; font-weight: 700; margin-top: 8px;" id="topPerformerName">-</div>
+                            <div style="font-size: 13px; opacity: 0.8;" id="topPerformerScore">0 points</div>
+                        </div>
+                        <div class="perf-card" style="background: linear-gradient(135deg, var(--success-500), #2E7D32); color: white; padding: 20px; border-radius: 12px; text-align: center;">
+                            <div style="font-size: 32px; font-weight: 700;" id="totalTasksCompleted">0</div>
+                            <div style="font-size: 13px; opacity: 0.9;">Total Tasks Completed</div>
+                        </div>
+                        <div class="perf-card" style="background: linear-gradient(135deg, var(--primary-500), var(--primary-700)); color: white; padding: 20px; border-radius: 12px; text-align: center;">
+                            <div style="font-size: 32px; font-weight: 700;" id="avgCompletionRate">0%</div>
+                            <div style="font-size: 13px; opacity: 0.9;">Avg Completion Rate</div>
+                        </div>
+                        <div class="perf-card" style="background: linear-gradient(135deg, #7B1FA2, #4A148C); color: white; padding: 20px; border-radius: 12px; text-align: center;">
+                            <div style="font-size: 32px; font-weight: 700;" id="totalPointsAwarded">0</div>
+                            <div style="font-size: 13px; opacity: 0.9;">Total Points Awarded</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Leaderboard and Individual Performance -->
+                    <div class="performance-content" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                        <!-- Leaderboard -->
+                        <div class="leaderboard-section" style="background: white; border-radius: 12px; box-shadow: var(--shadow); overflow: hidden;">
+                            <div style="background: linear-gradient(135deg, #1a365d, #2a5aa5); color: white; padding: 16px;">
+                                <h3 style="margin: 0;"><i class="fas fa-medal"></i> Staff Leaderboard</h3>
+                            </div>
+                            <div id="leaderboardContent" style="padding: 16px; max-height: 500px; overflow-y: auto;">
+                                <!-- Leaderboard entries -->
+                            </div>
+                        </div>
+                        
+                        <!-- Rewards System -->
+                        <div class="rewards-section" style="background: white; border-radius: 12px; box-shadow: var(--shadow); overflow: hidden;">
+                            <div style="background: linear-gradient(135deg, #FFD700, #FFA000); color: #333; padding: 16px;">
+                                <h3 style="margin: 0;"><i class="fas fa-gift"></i> Rewards & Recognition</h3>
+                            </div>
+                            <div id="rewardsContent" style="padding: 16px;">
+                                <!-- Rewards tiers -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Individual Performance Details -->
+                    <div class="individual-performance" style="margin-top: 24px;">
+                        <div style="background: white; border-radius: 12px; box-shadow: var(--shadow); overflow: hidden;">
+                            <div style="background: var(--gray-100); padding: 16px; border-bottom: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                                <h3 style="margin: 0;"><i class="fas fa-user-chart"></i> Individual Staff Performance</h3>
+                                <select id="staffPerformanceSelect" onchange="loadStaffPerformanceDetail()" style="min-width: 200px;">
+                                    <option value="">Select Staff Member</option>
+                                </select>
+                            </div>
+                            <div id="staffPerformanceDetail" style="padding: 20px;">
+                                <div style="text-align: center; color: var(--gray-500); padding: 40px;">
+                                    <i class="fas fa-chart-pie" style="font-size: 48px; margin-bottom: 16px;"></i>
+                                    <p>Select a staff member to view detailed performance</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Performance Metrics Explanation -->
+                    <div class="metrics-info" style="margin-top: 24px; background: #E3F2FD; border-radius: 12px; padding: 20px;">
+                        <h4 style="color: #1565C0; margin-bottom: 12px;"><i class="fas fa-info-circle"></i> How Points Are Calculated</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; font-size: 13px;">
+                            <div><strong>Task Completion:</strong> +10 points per task</div>
+                            <div><strong>Production Task:</strong> +15 points (bonus for production)</div>
+                            <div><strong>With Comments:</strong> +5 points (documentation bonus)</div>
+                            <div><strong>Early Completion:</strong> +3 points (before deadline)</div>
+                            <div><strong>Perfect Week:</strong> +50 points (all tasks completed)</div>
+                            <div><strong>Streak Bonus:</strong> +2 points per consecutive day</div>
                         </div>
                     </div>
                 </section>
@@ -440,6 +623,7 @@
     <script src="js/roster.js"></script>
     <script src="js/production.js"></script>
     <script src="js/reports.js"></script>
+    <script src="js/performance.js"></script>
     <script src="js/app.js"></script>
     
     <!-- Initialize Application -->
