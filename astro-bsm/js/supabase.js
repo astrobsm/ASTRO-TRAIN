@@ -39,8 +39,8 @@ const SYNC_CONFIG = {
     REALTIME_ENABLED: true    // Enable real-time subscriptions
 };
 
-// Supabase client instance
-let supabase = null;
+// Supabase client instance (named supabaseClient to avoid conflict with CDN global)
+let supabaseClient = null;
 let syncInProgress = false;
 let lastSyncTime = null;
 let realtimeChannels = [];
@@ -68,9 +68,9 @@ async function initSupabase() {
     }
 
     try {
-        // Initialize Supabase client
+        // Initialize Supabase client using the global supabase object from CDN
         const { createClient } = window.supabase;
-        supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
             auth: {
                 persistSession: true,
                 autoRefreshToken: true
@@ -135,17 +135,17 @@ function setupNetworkListeners() {
  * Setup real-time subscriptions for live updates
  */
 async function setupRealtimeSubscriptions() {
-    if (!supabase) return;
+    if (!supabaseClient) return;
 
     // Clean up existing subscriptions
     realtimeChannels.forEach(channel => {
-        supabase.removeChannel(channel);
+        supabaseClient.removeChannel(channel);
     });
     realtimeChannels = [];
 
     // Subscribe to each table
     for (const [localStore, remoteTable] of Object.entries(TABLE_MAPPINGS)) {
-        const channel = supabase
+        const channel = supabaseClient
             .channel(`${remoteTable}_changes`)
             .on(
                 'postgres_changes',
@@ -258,7 +258,7 @@ function shouldUpdateLocal(localRecord, serverRecord) {
  * Perform full 2-way sync
  */
 async function performFullSync() {
-    if (!supabase || !isOnline || syncInProgress) {
+    if (!supabaseClient || !isOnline || syncInProgress) {
         return { success: false, reason: 'Sync not available' };
     }
 
@@ -314,7 +314,7 @@ async function syncStore(localStoreName, remoteTableName) {
     const localRecords = await DB.getAll(storeName);
     
     // Get all remote records
-    const { data: remoteRecords, error } = await supabase
+    const { data: remoteRecords, error } = await supabaseClient
         .from(remoteTableName)
         .select('*');
 
@@ -405,7 +405,7 @@ function hashRecord(record) {
 async function pushToSupabase(tableName, record) {
     const supabaseRecord = convertToSupabase(record);
     
-    const { error } = await supabase
+    const { error } = await supabaseClient
         .from(tableName)
         .upsert(supabaseRecord, { onConflict: 'id' });
 
@@ -514,7 +514,7 @@ async function processOfflineQueue() {
                     await pushToSupabase(tableName, change.record);
                     break;
                 case 'delete':
-                    await supabase.from(tableName).delete().eq('id', change.record.id);
+                    await supabaseClient.from(tableName).delete().eq('id', change.record.id);
                     break;
             }
         } catch (error) {
@@ -672,7 +672,7 @@ const SyncDB = {
         record.id = id;
         
         // Sync to cloud
-        if (isOnline && supabase) {
+        if (isOnline && supabaseClient) {
             try {
                 const tableName = TABLE_MAPPINGS[getStoreKey(storeName)];
                 await pushToSupabase(tableName, record);
@@ -698,7 +698,7 @@ const SyncDB = {
         await DB.update(storeName, record);
         
         // Sync to cloud
-        if (isOnline && supabase) {
+        if (isOnline && supabaseClient) {
             try {
                 const tableName = TABLE_MAPPINGS[getStoreKey(storeName)];
                 await pushToSupabase(tableName, record);
@@ -722,10 +722,10 @@ const SyncDB = {
         await DB.delete(storeName, id);
         
         // Sync to cloud
-        if (isOnline && supabase) {
+        if (isOnline && supabaseClient) {
             try {
                 const tableName = TABLE_MAPPINGS[getStoreKey(storeName)];
-                await supabase.from(tableName).delete().eq('id', id);
+                await supabaseClient.from(tableName).delete().eq('id', id);
             } catch (error) {
                 console.error('Failed to sync delete:', error);
                 queueOfflineChange('delete', getStoreKey(storeName), { id });
@@ -1002,7 +1002,7 @@ window.SupabaseSync = {
     getStatus: getSyncStatus,
     SyncDB,
     isOnline: () => isOnline,
-    isConnected: () => supabase !== null
+    isConnected: () => supabaseClient !== null
 };
 
 // Export Auth module
