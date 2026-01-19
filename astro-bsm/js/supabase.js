@@ -405,9 +405,40 @@ function hashRecord(record) {
 async function pushToSupabase(tableName, record) {
     const supabaseRecord = convertToSupabase(record);
     
-    const { error } = await supabaseClient
-        .from(tableName)
-        .upsert(supabaseRecord, { onConflict: 'id' });
+    let error;
+    
+    // Handle different table types
+    if (tableName === 'bsm_settings') {
+        // Settings table uses 'key' as primary key, not 'id'
+        const result = await supabaseClient
+            .from(tableName)
+            .upsert(supabaseRecord, { onConflict: 'key' });
+        error = result.error;
+    } else if (tableName === 'bsm_logs') {
+        // Logs table - insert only (no upsert) since IDs are auto-generated
+        // Check if record already exists on server
+        const { data: existing } = await supabaseClient
+            .from(tableName)
+            .select('id')
+            .eq('id', supabaseRecord.id)
+            .single();
+        
+        if (!existing) {
+            // Remove local id for insert (let server generate it)
+            const { id, ...insertRecord } = supabaseRecord;
+            const result = await supabaseClient
+                .from(tableName)
+                .insert(insertRecord);
+            error = result.error;
+        }
+        // If exists, skip (already synced)
+    } else {
+        // All other tables use 'id' as primary key
+        const result = await supabaseClient
+            .from(tableName)
+            .upsert(supabaseRecord, { onConflict: 'id' });
+        error = result.error;
+    }
 
     if (error) {
         throw new Error(`Failed to push to ${tableName}: ${error.message}`);

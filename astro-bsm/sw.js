@@ -3,21 +3,23 @@
  * Service Worker for Offline Functionality
  */
 
-const CACHE_NAME = 'astro-bsm-v1.0.0';
+const CACHE_NAME = 'astro-bsm-v1.1.0';
 const STATIC_ASSETS = [
-    '/',
-    '/index.html',
-    '/css/app.css',
-    '/js/db.js',
-    '/js/utils.js',
-    '/js/staff.js',
-    '/js/duties.js',
-    '/js/roster.js',
-    '/js/production.js',
-    '/js/reports.js',
-    '/js/app.js',
-    '/manifest.json',
-    '/icons/icon.svg'
+    './',
+    './index.html',
+    './css/app.css',
+    './js/db.js',
+    './js/supabase.js',
+    './js/utils.js',
+    './js/staff.js',
+    './js/duties.js',
+    './js/roster.js',
+    './js/production.js',
+    './js/reports.js',
+    './js/performance.js',
+    './js/app.js',
+    './manifest.json',
+    './icons/icon.svg'
 ];
 
 // External resources to cache

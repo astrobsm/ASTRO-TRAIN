@@ -6,11 +6,19 @@
 // Application State
 let currentPage = 'dashboard';
 let userRole = 'admin';
+let appInitialized = false;
 
 /**
  * Initialize Application
  */
 async function initApp() {
+    // Prevent double initialization
+    if (appInitialized) {
+        console.log('App already initialized, skipping...');
+        return;
+    }
+    appInitialized = true;
+    
     console.log('Initializing ASTRO-BSM Application...');
     
     try {
