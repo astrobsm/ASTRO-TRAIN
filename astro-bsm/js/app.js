@@ -18,6 +18,26 @@ async function initApp() {
         await DB.init();
         console.log('Database initialized');
         
+        // Initialize Supabase sync (if configured)
+        if (window.SupabaseSync) {
+            await window.SupabaseSync.init();
+            console.log('Supabase sync initialized');
+            
+            // Listen for data updates from sync
+            document.addEventListener('dataUpdated', async (e) => {
+                console.log('Data updated from sync:', e.detail);
+                // Reload affected data
+                await Promise.all([
+                    Staff.load(),
+                    Duties.load(),
+                    Roster.load(),
+                    Production.load()
+                ]);
+                loadDashboard();
+                Utils.showToast('info', 'Data Synced', 'Data has been updated from the cloud');
+            });
+        }
+        
         // Seed default data if empty
         await DB.seedDefault();
         
@@ -555,6 +575,10 @@ document.addEventListener('visibilitychange', () => {
         if (currentPage === 'dashboard') {
             loadDashboard();
         }
+        // Trigger sync when app becomes visible
+        if (window.SupabaseSync && window.SupabaseSync.isConnected()) {
+            window.SupabaseSync.sync();
+        }
     }
 });
 
@@ -565,3 +589,85 @@ document.addEventListener('keydown', (e) => {
         closeModal();
     }
 });
+
+/**
+ * Manual Sync with Supabase
+ */
+async function manualSync() {
+    const syncBtn = document.getElementById('syncBtn');
+    const syncStatus = document.getElementById('syncStatus');
+    
+    if (!window.SupabaseSync) {
+        Utils.showToast('warning', 'Not Configured', 'Supabase sync is not configured');
+        return;
+    }
+    
+    // Update UI to show syncing
+    if (syncBtn) {
+        syncBtn.disabled = true;
+        syncBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i><span>Syncing...</span>';
+    }
+    
+    if (syncStatus) {
+        syncStatus.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i><span>Syncing with cloud...</span>';
+        syncStatus.className = 'sync-status syncing';
+    }
+    
+    try {
+        const result = await window.SupabaseSync.manualSync();
+        
+        if (result.success) {
+            // Reload all data
+            await Promise.all([
+                Staff.load(),
+                Duties.load(),
+                Roster.load(),
+                Production.load()
+            ]);
+            
+            loadDashboard();
+            
+            if (syncStatus) {
+                syncStatus.innerHTML = '<i class="fas fa-cloud-check"></i><span>Synced with cloud</span>';
+                syncStatus.className = 'sync-status synced';
+            }
+            
+            Utils.showToast('success', 'Sync Complete', `Synced successfully at ${new Date().toLocaleTimeString()}`);
+        } else {
+            throw new Error(result.error || 'Sync failed');
+        }
+    } catch (error) {
+        console.error('Manual sync failed:', error);
+        
+        if (syncStatus) {
+            syncStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i><span>Sync failed</span>';
+            syncStatus.className = 'sync-status error';
+        }
+        
+        Utils.showToast('error', 'Sync Failed', error.message);
+    } finally {
+        if (syncBtn) {
+            syncBtn.disabled = false;
+            syncBtn.innerHTML = '<i class="fas fa-sync-alt"></i><span>Sync Now</span>';
+        }
+    }
+}
+
+/**
+ * Update sync status display
+ */
+function updateSyncStatus(status, message) {
+    const syncStatus = document.getElementById('syncStatus');
+    if (!syncStatus) return;
+    
+    const icons = {
+        synced: 'fa-cloud-check',
+        syncing: 'fa-sync-alt fa-spin',
+        offline: 'fa-wifi-slash',
+        error: 'fa-exclamation-triangle',
+        pending: 'fa-clock'
+    };
+    
+    syncStatus.innerHTML = `<i class="fas ${icons[status] || 'fa-check-circle'}"></i><span>${message}</span>`;
+    syncStatus.className = `sync-status ${status}`;
+}
