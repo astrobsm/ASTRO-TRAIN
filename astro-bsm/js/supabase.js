@@ -45,7 +45,7 @@ let syncInProgress = false;
 let lastSyncTime = null;
 let realtimeChannels = [];
 let syncQueue = [];
-let isOnline = navigator.onLine;
+let networkOnline = navigator.onLine;
 
 // Table mappings (IndexedDB store -> Supabase table)
 const TABLE_MAPPINGS = {
@@ -113,7 +113,7 @@ async function initSupabase() {
  */
 function setupNetworkListeners() {
     window.addEventListener('online', async () => {
-        isOnline = true;
+        networkOnline = true;
         console.log('Network online - starting sync');
         updateSyncStatus('syncing', 'Reconnecting...');
         
@@ -125,7 +125,7 @@ function setupNetworkListeners() {
     });
 
     window.addEventListener('offline', () => {
-        isOnline = false;
+        networkOnline = false;
         console.log('Network offline - switching to local mode');
         updateSyncStatus('offline', 'Working offline');
     });
@@ -258,7 +258,7 @@ function shouldUpdateLocal(localRecord, serverRecord) {
  * Perform full 2-way sync
  */
 async function performFullSync() {
-    if (!supabaseClient || !isOnline || syncInProgress) {
+    if (!supabaseClient || !networkOnline || syncInProgress) {
         return { success: false, reason: 'Sync not available' };
     }
 
@@ -537,7 +537,7 @@ async function processOfflineQueue() {
  */
 function startAutoSync() {
     setInterval(async () => {
-        if (isOnline && !syncInProgress) {
+        if (networkOnline && !syncInProgress) {
             await performFullSync();
         }
     }, SYNC_CONFIG.SYNC_INTERVAL);
@@ -626,7 +626,7 @@ function triggerUIRefresh(storeName) {
  * Manual sync trigger
  */
 async function manualSync() {
-    if (!isOnline) {
+    if (!networkOnline) {
         Utils.showToast('warning', 'Offline', 'Cannot sync while offline');
         return;
     }
@@ -647,11 +647,11 @@ async function manualSync() {
  */
 function getSyncStatus() {
     return {
-        isOnline,
+        isOnline: networkOnline,
         syncInProgress,
         lastSyncTime,
         queuedChanges: syncQueue.length,
-        supabaseConnected: supabase !== null
+        supabaseConnected: supabaseClient !== null
     };
 }
 
@@ -672,7 +672,7 @@ const SyncDB = {
         record.id = id;
         
         // Sync to cloud
-        if (isOnline && supabaseClient) {
+        if (networkOnline && supabaseClient) {
             try {
                 const tableName = TABLE_MAPPINGS[getStoreKey(storeName)];
                 await pushToSupabase(tableName, record);
@@ -698,7 +698,7 @@ const SyncDB = {
         await DB.update(storeName, record);
         
         // Sync to cloud
-        if (isOnline && supabaseClient) {
+        if (networkOnline && supabaseClient) {
             try {
                 const tableName = TABLE_MAPPINGS[getStoreKey(storeName)];
                 await pushToSupabase(tableName, record);
@@ -722,7 +722,7 @@ const SyncDB = {
         await DB.delete(storeName, id);
         
         // Sync to cloud
-        if (isOnline && supabaseClient) {
+        if (networkOnline && supabaseClient) {
             try {
                 const tableName = TABLE_MAPPINGS[getStoreKey(storeName)];
                 await supabaseClient.from(tableName).delete().eq('id', id);
@@ -1001,7 +1001,7 @@ window.SupabaseSync = {
     manualSync,
     getStatus: getSyncStatus,
     SyncDB,
-    isOnline: () => isOnline,
+    isOnline: () => networkOnline,
     isConnected: () => supabaseClient !== null
 };
 
