@@ -205,19 +205,29 @@ async function syncRecordToLocal(storeName, record) {
         // Convert Supabase record to local format
         const localRecord = convertFromSupabase(record);
         
+        // Get the primary key based on table type
+        // Settings table uses 'key' as primary key, others use 'id'
+        const pkField = storeName.toLowerCase() === 'settings' ? 'key' : 'id';
+        const pkValue = localRecord[pkField];
+        
+        if (!pkValue) {
+            console.warn(`No primary key (${pkField}) found for ${storeName} record:`, localRecord);
+            return;
+        }
+        
         // Check if record exists locally
-        const existingRecord = await DB.get(DB.STORES[storeName.toUpperCase()], localRecord.id);
+        const existingRecord = await DB.get(DB.STORES[storeName.toUpperCase()], pkValue);
         
         if (existingRecord) {
             // Conflict resolution
             if (shouldUpdateLocal(existingRecord, localRecord)) {
                 await DB.update(DB.STORES[storeName.toUpperCase()], localRecord);
-                console.log(`Updated local record in ${storeName}:`, localRecord.id);
+                console.log(`Updated local record in ${storeName}:`, pkValue);
             }
         } else {
             // New record from server
             await DB.add(DB.STORES[storeName.toUpperCase()], localRecord);
-            console.log(`Added new record to ${storeName}:`, localRecord.id);
+            console.log(`Added new record to ${storeName}:`, pkValue);
         }
 
     } catch (error) {
@@ -309,6 +319,27 @@ async function performFullSync() {
 async function syncStore(localStoreName, remoteTableName) {
     const result = { pushed: 0, pulled: 0, conflicts: 0 };
     const storeName = DB.STORES[localStoreName.toUpperCase()];
+    
+    // Determine primary key field based on table type
+    const pkField = localStoreName.toLowerCase() === 'settings' ? 'key' : 'id';
+    
+    // Skip logs sync (logs are write-only, no need to pull)
+    if (localStoreName.toLowerCase() === 'logs') {
+        // Just push local logs to server
+        const localRecords = await DB.getAll(storeName);
+        for (const localRecord of localRecords) {
+            if (!localRecord.syncedAt) {
+                try {
+                    await pushToSupabase(remoteTableName, localRecord);
+                    result.pushed++;
+                } catch (e) {
+                    // Ignore errors for logs - they're not critical
+                    console.warn('Could not sync log:', e.message);
+                }
+            }
+        }
+        return result;
+    }
 
     // Get all local records
     const localRecords = await DB.getAll(storeName);
@@ -322,9 +353,9 @@ async function syncStore(localStoreName, remoteTableName) {
         throw new Error(`Failed to fetch ${remoteTableName}: ${error.message}`);
     }
 
-    // Create maps for quick lookup
-    const localMap = new Map(localRecords.map(r => [r.id, r]));
-    const remoteMap = new Map((remoteRecords || []).map(r => [r.id, r]));
+    // Create maps for quick lookup using the correct primary key
+    const localMap = new Map(localRecords.map(r => [r[pkField], r]));
+    const remoteMap = new Map((remoteRecords || []).map(r => [r[pkField], r]));
 
     // Process local records (push to server)
     for (const [id, localRecord] of localMap) {
