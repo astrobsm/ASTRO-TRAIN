@@ -14,6 +14,20 @@ async function initApp() {
     console.log('Initializing ASTRO-BSM Application...');
     
     try {
+        // Check for existing session first
+        if (window.Auth && !window.Auth.checkSession()) {
+            // No valid session - show login screen
+            window.Auth.showLogin();
+            
+            // Initialize database in background
+            await DB.init();
+            console.log('Database initialized (awaiting login)');
+            return;
+        }
+        
+        // User is authenticated - proceed with full initialization
+        console.log('User authenticated, loading application...');
+        
         // Initialize database
         await DB.init();
         console.log('Database initialized');
@@ -38,11 +52,17 @@ async function initApp() {
             });
         }
         
+        // Update UI for current user role
+        if (window.Auth) {
+            window.Auth.updateUIForRole();
+            const user = window.Auth.getCurrentUser();
+            if (user) {
+                userRole = user.role;
+            }
+        }
+        
         // Seed default data if empty
         await DB.seedDefault();
-        
-        // Load user settings
-        userRole = await DB.getSetting('userRole') || 'admin';
         
         // Setup network status listeners
         Utils.setupNetworkListeners();

@@ -4,9 +4,30 @@
  * Provides robust 2-way sync with offline support
  */
 
-// Supabase Configuration - Replace with your project credentials
-const SUPABASE_URL = 'YOUR_SUPABASE_URL'; // e.g., 'https://xxxxx.supabase.co'
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+// Supabase Configuration
+const SUPABASE_URL = 'https://nznytmaujhmqpygxgkgf.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im56bnl0bWF1amhtcXB5Z3hna2dmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYxMDUzODQsImV4cCI6MjA4MTY4MTM4NH0.vKNdDpWDgdrXjMyycUdh6YqjKW8xgTZJdKdOY4GPf5U';
+
+// Authentication Configuration
+const AUTH_CONFIG = {
+    users: {
+        admin: {
+            password: 'blackvelvet',
+            role: 'admin',
+            permissions: ['read', 'write', 'delete', 'manage_staff', 'manage_settings', 'view_reports', 'manage_production']
+        },
+        supervisor: {
+            password: 'pinkpetals',
+            role: 'supervisor',
+            permissions: ['read', 'write', 'view_reports', 'manage_production']
+        }
+    },
+    sessionKey: 'bsm_auth_session',
+    sessionDuration: 24 * 60 * 60 * 1000 // 24 hours
+};
+
+// Current user session
+let currentUser = null;
 
 // Sync Configuration
 const SYNC_CONFIG = {
@@ -725,6 +746,254 @@ function getStoreKey(storeName) {
     return storeName;
 }
 
+// =============================================
+// AUTHENTICATION FUNCTIONS
+// =============================================
+
+/**
+ * Show login screen
+ */
+function showLoginScreen() {
+    const app = document.getElementById('app');
+    const existingLogin = document.getElementById('loginScreen');
+    if (existingLogin) existingLogin.remove();
+
+    const loginScreen = document.createElement('div');
+    loginScreen.id = 'loginScreen';
+    loginScreen.className = 'login-screen';
+    loginScreen.innerHTML = `
+        <div class="login-container">
+            <div class="login-header">
+                <div class="login-logo">
+                    <i class="fas fa-industry"></i>
+                </div>
+                <h1>ASTRO-BSM</h1>
+                <p>Factory Operations System</p>
+            </div>
+            <form id="loginForm" class="login-form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="loginUsername">
+                        <i class="fas fa-user"></i> Username
+                    </label>
+                    <input type="text" id="loginUsername" placeholder="Enter username" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">
+                        <i class="fas fa-lock"></i> Password
+                    </label>
+                    <div class="password-input">
+                        <input type="password" id="loginPassword" placeholder="Enter password" required autocomplete="current-password">
+                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility()">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="loginError" class="login-error hidden"></div>
+                <button type="submit" class="btn btn-primary login-btn">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+            </form>
+            <div class="login-footer">
+                <p>Secure Access Only</p>
+                <small>v1.1.0</small>
+            </div>
+        </div>
+    `;
+
+    document.body.insertBefore(loginScreen, app);
+    app.style.display = 'none';
+    
+    // Focus on username field
+    setTimeout(() => document.getElementById('loginUsername').focus(), 100);
+}
+
+/**
+ * Toggle password visibility
+ */
+function togglePasswordVisibility() {
+    const passwordInput = document.getElementById('loginPassword');
+    const toggleBtn = document.querySelector('.toggle-password i');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleBtn.className = 'fas fa-eye-slash';
+    } else {
+        passwordInput.type = 'password';
+        toggleBtn.className = 'fas fa-eye';
+    }
+}
+
+/**
+ * Handle login form submission
+ */
+async function handleLogin(event) {
+    event.preventDefault();
+    
+    const username = document.getElementById('loginUsername').value.trim().toLowerCase();
+    const password = document.getElementById('loginPassword').value;
+    const errorDiv = document.getElementById('loginError');
+    const loginBtn = document.querySelector('.login-btn');
+    
+    // Show loading state
+    loginBtn.disabled = true;
+    loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
+    errorDiv.classList.add('hidden');
+    
+    // Simulate network delay for security
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Validate credentials
+    const user = AUTH_CONFIG.users[username];
+    
+    if (user && user.password === password) {
+        // Successful login
+        currentUser = {
+            username,
+            role: user.role,
+            permissions: user.permissions,
+            loginTime: new Date().toISOString()
+        };
+        
+        // Save session
+        const session = {
+            ...currentUser,
+            expires: Date.now() + AUTH_CONFIG.sessionDuration
+        };
+        localStorage.setItem(AUTH_CONFIG.sessionKey, JSON.stringify(session));
+        
+        // Log the login
+        console.log(`User logged in: ${username} (${user.role})`);
+        
+        // Hide login screen and show app
+        document.getElementById('loginScreen').remove();
+        document.getElementById('app').style.display = '';
+        
+        // Update UI for user role
+        updateUIForRole();
+        
+        // Show welcome message
+        if (typeof Utils !== 'undefined') {
+            Utils.showToast('success', 'Welcome', `Logged in as ${user.role.charAt(0).toUpperCase() + user.role.slice(1)}`);
+        }
+        
+    } else {
+        // Failed login
+        errorDiv.textContent = 'Invalid username or password';
+        errorDiv.classList.remove('hidden');
+        
+        // Shake animation
+        document.querySelector('.login-container').classList.add('shake');
+        setTimeout(() => {
+            document.querySelector('.login-container').classList.remove('shake');
+        }, 500);
+        
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+    }
+}
+
+/**
+ * Check for existing session
+ */
+function checkSession() {
+    const sessionData = localStorage.getItem(AUTH_CONFIG.sessionKey);
+    
+    if (sessionData) {
+        try {
+            const session = JSON.parse(sessionData);
+            
+            // Check if session is still valid
+            if (session.expires > Date.now()) {
+                currentUser = {
+                    username: session.username,
+                    role: session.role,
+                    permissions: session.permissions,
+                    loginTime: session.loginTime
+                };
+                return true;
+            } else {
+                // Session expired
+                localStorage.removeItem(AUTH_CONFIG.sessionKey);
+            }
+        } catch (e) {
+            localStorage.removeItem(AUTH_CONFIG.sessionKey);
+        }
+    }
+    
+    return false;
+}
+
+/**
+ * Update UI based on user role
+ */
+function updateUIForRole() {
+    if (!currentUser) return;
+    
+    // Update header to show current user
+    const headerActions = document.querySelector('.header-actions');
+    if (headerActions) {
+        // Remove existing user badge if any
+        const existingBadge = headerActions.querySelector('.user-badge');
+        if (existingBadge) existingBadge.remove();
+        
+        // Add user badge
+        const userBadge = document.createElement('div');
+        userBadge.className = 'user-badge';
+        userBadge.innerHTML = `
+            <span class="role-indicator ${currentUser.role}">
+                <i class="fas fa-${currentUser.role === 'admin' ? 'user-shield' : 'user-tie'}"></i>
+                ${currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1)}
+            </span>
+            <button class="btn-icon" onclick="logout()" title="Logout">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        `;
+        headerActions.insertBefore(userBadge, headerActions.firstChild);
+    }
+    
+    // Hide/show elements based on permissions
+    if (currentUser.role === 'supervisor') {
+        // Hide admin-only elements
+        document.querySelectorAll('.admin-only').forEach(el => {
+            el.style.display = 'none';
+        });
+        
+        // Hide settings nav for supervisors
+        const settingsNav = document.querySelector('[data-page="settings"]');
+        if (settingsNav) settingsNav.style.display = 'none';
+    }
+}
+
+/**
+ * Check if user has permission
+ */
+function hasPermission(permission) {
+    if (!currentUser) return false;
+    return currentUser.permissions.includes(permission);
+}
+
+/**
+ * Logout user
+ */
+function logout() {
+    if (confirm('Are you sure you want to logout?')) {
+        localStorage.removeItem(AUTH_CONFIG.sessionKey);
+        currentUser = null;
+        
+        // Show login screen
+        showLoginScreen();
+        
+        console.log('User logged out');
+    }
+}
+
+/**
+ * Get current user
+ */
+function getCurrentUser() {
+    return currentUser;
+}
+
 // Export Supabase sync module
 window.SupabaseSync = {
     init: initSupabase,
@@ -734,6 +1003,16 @@ window.SupabaseSync = {
     SyncDB,
     isOnline: () => isOnline,
     isConnected: () => supabase !== null
+};
+
+// Export Auth module
+window.Auth = {
+    showLogin: showLoginScreen,
+    checkSession,
+    logout,
+    getCurrentUser,
+    hasPermission,
+    updateUIForRole
 };
 
 // Export SyncDB globally for easy access
